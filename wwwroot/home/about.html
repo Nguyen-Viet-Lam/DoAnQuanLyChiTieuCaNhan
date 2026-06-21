@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>About | SmartSpend AI</title>
+  <title>Giới thiệu | SmartSpend AI</title>
   <link rel="stylesheet" href="/css/style.css">
   <script src="/js/auth.js" defer></script>
   <script src="/js/app-shell.js" defer></script>
@@ -13,14 +13,13 @@
     <div class="container">
       <a class="brand" href="/home/index.html"><span class="brand-mark">S</span><span>SmartSpend AI</span></a>
       <nav class="public-nav">
-        <a href="/home/index.html">Home</a>
-        <a class="is-active" href="/home/about.html">About</a>
-        <a href="/home/guide.html">Guide</a>
+        <a href="/home/index.html">Trang chủ</a>
+        <a class="is-active" href="/home/about.html">Giới thiệu</a>
+        <a href="/home/guide.html">Hướng dẫn</a>
       </nav>
       <div class="header-actions">
-        <button class="theme-toggle" type="button" data-theme-toggle>Theme <span data-theme-label>Light</span></button>
         <a class="btn btn-secondary" href="/home/login.html" data-auth-guest>Đăng nhập</a>
-        <a class="btn btn-primary" href="/home/dashboard.html" data-auth-user>Dashboard</a>
+        <a class="btn btn-primary" href="/home/dashboard.html" data-auth-user>Tổng quan</a>
       </div>
     </div>
   </header>
@@ -28,7 +27,7 @@
   <main class="page-hero">
     <div class="container stack">
       <section class="page-hero-card">
-        <span class="eyebrow">About the project</span>
+        <span class="eyebrow">Giới thiệu dự án</span>
         <h1>SmartSpend AI được thiết kế để làm gì?</h1>
         <p>Đây là web quản lý chi tiêu cá nhân hướng desktop-first, tập trung vào trải nghiệm nhập liệu nhanh, trực quan hóa dữ liệu tài chính và cảnh báo real-time để thuyết phục cho một đồ án năm 3 nhưng không quá phức tạp như sản phẩm doanh nghiệp.</p>
       </section>
@@ -43,7 +42,7 @@
           </ul>
         </article>
         <article class="panel">
-          <h2>Tech stack chính</h2>
+          <h2>Công nghệ chính</h2>
           <div class="tech-stack">
             <span>ASP.NET Core Web API</span>
             <span>Entity Framework Core</span>
@@ -60,23 +59,23 @@
         <article class="feature-card">
           <span class="feature-icon">A</span>
           <h3>Backend</h3>
-          <p>Auth, OTP, role, CRUD Wallet/Transaction/Budget, admin API, audit log, alert hub.</p>
+          <p>Xác thực, OTP, phân quyền, CRUD ví - giao dịch - ngân sách, API quản trị, nhật ký thao tác và hub cảnh báo.</p>
         </article>
         <article class="feature-card">
           <span class="feature-icon">B</span>
           <h3>Database</h3>
-          <p>Schema mới cho Users, Roles, Wallets, Transactions, Budgets, BudgetAlerts, Keywords, AuditLogs.</p>
+          <p>Lược đồ dữ liệu cho người dùng, vai trò, ví, giao dịch, ngân sách, cảnh báo ngân sách, từ khóa và nhật ký hệ thống.</p>
         </article>
         <article class="feature-card">
           <span class="feature-icon">C</span>
           <h3>Frontend</h3>
-          <p>Landing page, auth pages, dashboard tài chính, admin pages và dark/light mode đồng bộ.</p>
+          <p>Trang giới thiệu, các màn hình xác thực, dashboard tài chính và khu quản trị đồng bộ.</p>
         </article>
       </section>
 
       <section class="panel">
         <h2>Database và phân quyền</h2>
-        <p>SmartSpend tách rõ quyền Guest, Standard User, System Admin. Mọi transaction, wallet và budget đều gắn với user hiện tại để đảm bảo data isolation. Bảng Keywords được dùng cho AI categorization theo rule-based dictionary, còn BudgetAlerts lưu các cảnh báo đã phát sinh để user xem lại trên dashboard.</p>
+        <p>SmartSpend tách rõ quyền Khách, Người dùng và Quản trị viên. Mọi giao dịch, ví và ngân sách đều gắn với người dùng hiện tại để đảm bảo tách biệt dữ liệu. Bảng từ khóa được dùng cho AI phân loại theo luật, còn cảnh báo ngân sách lưu lại các nhắc nhở đã phát sinh để người dùng xem lại trên dashboard.</p>
       </section>
     </div>
   </main>

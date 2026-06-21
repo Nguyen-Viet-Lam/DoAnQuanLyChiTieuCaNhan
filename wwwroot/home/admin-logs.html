@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Logs | SmartSpend AI</title>
+  <title>Nhật ký hệ thống | SmartSpend AI</title>
   <link rel="stylesheet" href="/css/style.css">
   <script src="/js/auth.js" defer></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js" defer></script>
   <script src="/js/app-shell.js" defer></script>
   <script src="/js/finance-pages.js" defer></script>
 </head>
-<body data-layout="app" data-page="admin-logs" data-page-title="Audit logs hệ thống" data-required-role="SystemAdmin">
+<body data-layout="app" data-page="admin-logs" data-page-title="Nhật ký hệ thống" data-required-role="SystemAdmin">
   <div class="page-shell">
     <aside class="app-sidebar" id="appSidebar"></aside>
     <div class="app-frame">
@@ -22,10 +22,10 @@
             <div class="table-toolbar">
               <div>
                 <h3>Nhật ký hệ thống</h3>
-                <p class="muted">Theo dõi thao tác quan trọng: đăng nhập lạ, quản trị, cập nhật dữ liệu.</p>
+                <p class="muted">Theo dõi các thao tác quan trọng như đăng nhập lạ, quản trị người dùng và cập nhật dữ liệu.</p>
               </div>
               <div class="inline-actions">
-                <div class="field" style="min-width: 120px;">
+                <div class="field admin-take-field">
                   <label for="adminLogsTake">Số dòng</label>
                   <input class="input" type="number" id="adminLogsTake" min="1" max="200" value="50">
                 </div>
@@ -36,12 +36,12 @@
               <thead>
                 <tr>
                   <th>ID</th>
-                  <th>Actor</th>
-                  <th>Action</th>
-                  <th>TargetType</th>
-                  <th>TargetId</th>
-                  <th>Metadata</th>
-                  <th>CreatedAt</th>
+                  <th>Người thực hiện</th>
+                  <th>Hành động</th>
+                  <th>Đối tượng</th>
+                  <th>Mã đích</th>
+                  <th>Chi tiết</th>
+                  <th>Thời gian</th>
                 </tr>
               </thead>
               <tbody id="adminLogsBody"></tbody>

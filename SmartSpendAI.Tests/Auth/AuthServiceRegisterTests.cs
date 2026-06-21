@@ -91,7 +91,7 @@ public sealed class AuthServiceRegisterTests
         Assert.True(result.Success);
         var response = Assert.IsType<RegisterResponse>(result.Response);
         Assert.False(response.OtpDispatched);
-        Assert.Equal("Dang ky thanh cong nhung chua gui duoc OTP. Vui long gui lai OTP.", response.Message);
+        Assert.Equal("Đăng ký thành công nhưng chưa gửi được OTP. Vui lòng gửi lại OTP.", response.Message);
         Assert.Single(dbContext.Users);
     }
 

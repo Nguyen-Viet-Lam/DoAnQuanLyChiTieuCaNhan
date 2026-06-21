@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartSpend AI - Wallets Snapshot</title>
+  <link rel="stylesheet" href="./snapshot.css">
+</head>
+<body data-layout="app" data-theme="light">
+  <div class="page-shell">
+    <aside class="app-sidebar mock-sidebar">
+      <div class="sidebar-title">Finance Workspace</div>
+      <nav class="sidebar-nav">
+        <a class="sidebar-link" href="#"><span class="sidebar-link-label">Dashboard</span></a>
+        <a class="sidebar-link is-active" href="#"><span class="sidebar-link-label">Ví</span></a>
+        <a class="sidebar-link" href="#"><span class="sidebar-link-label">Giao dịch</span></a>
+        <a class="sidebar-link" href="#"><span class="sidebar-link-label">Ngân sách</span></a>
+        <a class="sidebar-link" href="#"><span class="sidebar-link-label">Báo cáo</span></a>
+      </nav>
+    </aside>
+    <div class="app-frame">
+      <header class="app-topbar">
+        <div class="mock-topbar">
+          <div class="topbar-copy">
+            <h1>Quản lý ví</h1>
+            <p>Tạo ví mới, đặt ví mặc định và theo dõi số dư giữa tiền mặt, ngân hàng và ví điện tử.</p>
+          </div>
+          <div class="mock-chip">Tối đa <strong>3 ví</strong></div>
+        </div>
+      </header>
+      <main class="app-content">
+        <section class="app-section">
+          <div class="summary-grid">
+            <article class="summary-card">
+              <div class="metric-label">Tổng số dư</div>
+              <div class="metric-value">12.450.000 đ</div>
+            </article>
+            <article class="summary-card">
+              <div class="metric-label">Số lượng ví</div>
+              <div class="metric-value">3</div>
+            </article>
+            <article class="summary-card">
+              <div class="metric-label">Gói hiện tại</div>
+              <div class="metric-value">Standard User</div>
+              <div class="muted">Mặc định tối đa 3 ví.</div>
+            </article>
+          </div>
+
+          <div class="dashboard-grid">
+            <article class="panel">
+              <div class="panel-header">
+                <div>
+                  <h2>Tạo hoặc chỉnh sửa ví</h2>
+                  <p class="muted">Hỗ trợ ví tiền mặt, ngân hàng, tiết kiệm và Momo.</p>
+                </div>
+              </div>
+              <div class="form-grid">
+                <div class="field"><label>Tên ví</label><input class="input" value="Ngân hàng ACB"></div>
+                <div class="field"><label>Loại ví</label><input class="input" value="Bank"></div>
+              </div>
+              <div class="form-grid">
+                <div class="field"><label>Số dư ban đầu</label><input class="input" value="8950000"></div>
+                <div class="field"><label>Trạng thái</label><input class="input" value="Ví mặc định"></div>
+              </div>
+              <div class="inline-actions"><button class="btn btn-primary" type="button">Lưu ví</button><button class="btn btn-secondary" type="button">Hủy</button></div>
+            </article>
+            <article class="panel">
+              <div class="panel-header">
+                <div>
+                  <h2>Chuyển tiền giữa các ví</h2>
+                  <p class="muted">Dùng cho các thao tác như rút tiền từ ngân hàng sang tiền mặt.</p>
+                </div>
+              </div>
+              <div class="form-grid">
+                <div class="field"><label>Từ ví</label><input class="input" value="Ngân hàng ACB"></div>
+                <div class="field"><label>Sang ví</label><input class="input" value="Ví tiền mặt"></div>
+              </div>
+              <div class="form-grid">
+                <div class="field"><label>Số tiền</label><input class="input" value="1000000"></div>
+                <div class="field"><label>Ngày chuyển</label><input class="input" value="2026-06-08"></div>
+              </div>
+              <div class="field"><label>Ghi chú</label><input class="input" value="Rút tiền tiêu vặt cuối tuần"></div>
+              <button class="btn btn-accent" type="button">Chuyển tiền</button>
+            </article>
+          </div>
+
+          <article class="table-card">
+            <div class="table-toolbar">
+              <div>
+                <h3>Danh sách ví</h3>
+                <p class="muted">Các ví hiện có của người dùng.</p>
+              </div>
+            </div>
+            <table class="mock-table">
+              <thead>
+                <tr><th>Tên ví</th><th>Loại</th><th>Số dư</th><th>Ghi chú</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Ví tiền mặt</td><td>Cash</td><td>2.200.000 đ</td><td>Dùng cho chi tiêu hằng ngày</td></tr>
+                <tr><td>Ngân hàng ACB</td><td>Bank</td><td>8.950.000 đ</td><td>Ví mặc định</td></tr>
+                <tr><td>Momo</td><td>Momo</td><td>1.300.000 đ</td><td>Thanh toán nhanh</td></tr>
+              </tbody>
+            </table>
+          </article>
+        </section>
+      </main>
+    </div>
+  </div>
+</body>
+</html>

@@ -67,7 +67,7 @@ namespace SmartSpendAI.Controllers
                 var category = await _dbContext.Categories.FirstOrDefaultAsync(x => x.CategoryId == request.CategoryId, cancellationToken);
                 if (category is null)
                 {
-                    return BadRequest(new { message = "Danh muc khong hop le." });
+                    return BadRequest(new { message = "Danh mục không hợp lệ." });
                 }
 
                 budget = new Budget
@@ -113,13 +113,13 @@ namespace SmartSpendAI.Controllers
             var budget = await _dbContext.Budgets.FirstOrDefaultAsync(x => x.BudgetId == id && x.UserId == userId, cancellationToken);
             if (budget is null)
             {
-                return NotFound(new { message = "Khong tim thay ngan sach." });
+                return NotFound(new { message = "Không tìm thấy ngân sách." });
             }
 
             _dbContext.Budgets.Remove(budget);
             await _dbContext.SaveChangesAsync(cancellationToken);
 
-            return Ok(new { message = "Da xoa ngan sach." });
+            return Ok(new { message = "Đã xóa ngân sách." });
         }
 
         private async Task<BudgetResponse> MapBudgetAsync(int userId, Budget budget, CancellationToken cancellationToken)

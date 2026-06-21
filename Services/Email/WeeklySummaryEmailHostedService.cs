@@ -9,22 +9,25 @@ namespace SmartSpendAI.Services.Email
         private readonly IServiceScopeFactory _scopeFactory;
         private readonly WeeklySummaryEmailSettings _settings;
         private readonly ILogger<WeeklySummaryEmailHostedService> _logger;
+        private readonly TimeProvider _timeProvider;
 
         public WeeklySummaryEmailHostedService(
             IServiceScopeFactory scopeFactory,
             IOptions<WeeklySummaryEmailSettings> settings,
-            ILogger<WeeklySummaryEmailHostedService> logger)
+            ILogger<WeeklySummaryEmailHostedService> logger,
+            TimeProvider? timeProvider = null)
         {
             _scopeFactory = scopeFactory;
             _settings = settings.Value;
             _logger = logger;
+            _timeProvider = timeProvider ?? TimeProvider.System;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             if (!_settings.Enabled)
             {
-                _logger.LogInformation("Weekly summary email service is disabled.");
+                _logger.LogInformation("Dịch vụ email tổng kết tuần đang bị tắt.");
                 return;
             }
 
@@ -40,7 +43,7 @@ namespace SmartSpendAI.Services.Email
         private async Task TryDispatchWeeklySummariesAsync(int intervalMinutes, CancellationToken cancellationToken)
         {
             var timeZone = ResolveTimeZone(_settings.TimeZoneId);
-            var nowLocal = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, timeZone);
+            var nowLocal = TimeZoneInfo.ConvertTimeFromUtc(_timeProvider.GetUtcNow().UtcDateTime, timeZone);
 
             if (nowLocal.DayOfWeek != DayOfWeek.Monday)
             {
@@ -72,7 +75,7 @@ namespace SmartSpendAI.Services.Email
                 string.IsNullOrWhiteSpace(smtpSettings.Username) ||
                 string.IsNullOrWhiteSpace(smtpSettings.Password))
             {
-                _logger.LogWarning("Weekly summary skipped because SMTP is not configured.");
+                _logger.LogWarning("Bỏ qua email tổng kết tuần vì SMTP chưa được cấu hình.");
                 return;
             }
 
@@ -107,11 +110,20 @@ namespace SmartSpendAI.Services.Email
 
                     var transactions = await dbContext.Transactions
                         .AsNoTracking()
-                        .Include(x => x.Category)
                         .Where(x => x.UserId == user.UserId &&
                                     x.TransactionDate >= periodStartUtc &&
                                     x.TransactionDate < periodEndUtc)
                         .ToListAsync(cancellationToken);
+
+                    var categoryIds = transactions
+                        .Select(x => x.CategoryId)
+                        .Distinct()
+                        .ToList();
+
+                    var categoryNames = await dbContext.Categories
+                        .AsNoTracking()
+                        .Where(x => categoryIds.Contains(x.CategoryId))
+                        .ToDictionaryAsync(x => x.CategoryId, x => x.Name, cancellationToken);
 
                     var totalIncome = transactions
                         .Where(x => string.Equals(x.Type, "Income", StringComparison.OrdinalIgnoreCase))
@@ -123,7 +135,7 @@ namespace SmartSpendAI.Services.Email
 
                     var topExpenseCategories = transactions
                         .Where(x => string.Equals(x.Type, "Expense", StringComparison.OrdinalIgnoreCase))
-                        .GroupBy(x => x.Category.Name)
+                        .GroupBy(x => GetExpenseCategoryName(x, categoryNames))
                         .Select(group => new ExpenseCategorySummary(group.Key, group.Sum(x => x.Amount)))
                         .OrderByDescending(x => x.Amount)
                         .Take(3)
@@ -148,7 +160,7 @@ namespace SmartSpendAI.Services.Email
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(ex, "Could not send weekly summary for UserId={UserId}.", user.UserId);
+                    _logger.LogWarning(ex, "Không thể gửi email tổng kết tuần cho UserId={UserId}.", user.UserId);
                 }
             }
         }
@@ -167,7 +179,7 @@ namespace SmartSpendAI.Services.Email
 
             var topSection = lines.Count > 0
                 ? string.Join("\n", lines)
-                : "- Chua co giao dich chi tieu trong tuan.";
+                : "- Chưa có giao dịch chi tiêu trong tuần.";
 
             return
                 $"Xin chao {fullName},\n\n" +
@@ -194,7 +206,7 @@ namespace SmartSpendAI.Services.Email
 
             if (topItems.Count == 0)
             {
-                topItems.Add("<li>Chua co giao dich chi tieu trong tuan.</li>");
+                topItems.Add("<li>Chưa có giao dịch chi tiêu trong tuần.</li>");
             }
 
             return
@@ -218,9 +230,19 @@ namespace SmartSpendAI.Services.Email
             }
             catch
             {
-                _logger.LogWarning("Invalid WeeklySummaryEmail timezone '{TimeZoneId}'. Fallback to UTC.", timeZoneId);
+                _logger.LogWarning("Múi giờ WeeklySummaryEmail '{TimeZoneId}' không hợp lệ. Sẽ dùng UTC thay thế.", timeZoneId);
                 return TimeZoneInfo.Utc;
             }
+        }
+
+        private static string GetExpenseCategoryName(
+            TransactionEntry transaction,
+            IReadOnlyDictionary<int, string> categoryNames)
+        {
+            return !categoryNames.TryGetValue(transaction.CategoryId, out var categoryName) ||
+                   string.IsNullOrWhiteSpace(categoryName)
+                ? "Không phân loại"
+                : categoryName;
         }
 
         private sealed record ExpenseCategorySummary(string CategoryName, decimal Amount);

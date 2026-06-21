@@ -3,7 +3,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using SmartSpendAI.Models;
+using SmartSpendAI.Models.Dtos.Dashboard;
 using SmartSpendAI.Models.Dtos.Finance;
+using SmartSpendAI.Services.AI;
 using SmartSpendAI.Services.Finance;
 using SmartSpendAI.Services.Realtime;
 
@@ -16,15 +18,18 @@ namespace SmartSpendAI.Controllers
         private readonly AppDbContext _dbContext;
         private readonly IHubContext<BudgetAlertsHub> _hubContext;
         private readonly ITransactionExportService _transactionExportService;
+        private readonly ISmartReminderService _smartReminderService;
 
         public TransactionsController(
             AppDbContext dbContext,
             IHubContext<BudgetAlertsHub> hubContext,
-            ITransactionExportService transactionExportService)
+            ITransactionExportService transactionExportService,
+            ISmartReminderService smartReminderService)
         {
             _dbContext = dbContext;
             _hubContext = hubContext;
             _transactionExportService = transactionExportService;
+            _smartReminderService = smartReminderService;
         }
 
         [HttpGet]
@@ -148,7 +153,7 @@ namespace SmartSpendAI.Controllers
 
             if (wallet is null || category is null)
             {
-                return BadRequest(new { message = "Vi hoac danh muc khong hop le." });
+                return BadRequest(new { message = "Ví hoặc danh mục không hợp lệ." });
             }
 
             var transaction = new TransactionEntry
@@ -178,6 +183,7 @@ namespace SmartSpendAI.Controllers
 
             await _dbContext.SaveChangesAsync(cancellationToken);
             await CreateAndBroadcastBudgetAlertsAsync(userId.Value, transaction, cancellationToken);
+            await BroadcastAiReminderAsync(userId.Value, cancellationToken);
 
             return Ok(new TransactionResponse
             {
@@ -212,7 +218,7 @@ namespace SmartSpendAI.Controllers
             var transaction = await _dbContext.Transactions.FirstOrDefaultAsync(x => x.TransactionEntryId == id && x.UserId == userId, cancellationToken);
             if (transaction is null)
             {
-                return NotFound(new { message = "Khong tim thay giao dich." });
+                return NotFound(new { message = "Không tìm thấy giao dịch." });
             }
 
             var oldWallet = await _dbContext.Wallets.FirstAsync(x => x.WalletId == transaction.WalletId, cancellationToken);
@@ -220,7 +226,7 @@ namespace SmartSpendAI.Controllers
             var category = await _dbContext.Categories.FirstOrDefaultAsync(x => x.CategoryId == request.CategoryId, cancellationToken);
             if (newWallet is null || category is null)
             {
-                return BadRequest(new { message = "Vi hoac danh muc khong hop le." });
+                return BadRequest(new { message = "Ví hoặc danh mục không hợp lệ." });
             }
 
             ApplyWalletImpact(oldWallet, transaction.Type, transaction.Amount, reverse: true);
@@ -246,6 +252,7 @@ namespace SmartSpendAI.Controllers
 
             await _dbContext.SaveChangesAsync(cancellationToken);
             await CreateAndBroadcastBudgetAlertsAsync(userId.Value, transaction, cancellationToken);
+            await BroadcastAiReminderAsync(userId.Value, cancellationToken);
 
             return Ok(new { message = "Cap nhat giao dich thanh cong." });
         }
@@ -262,7 +269,7 @@ namespace SmartSpendAI.Controllers
             var transaction = await _dbContext.Transactions.FirstOrDefaultAsync(x => x.TransactionEntryId == id && x.UserId == userId, cancellationToken);
             if (transaction is null)
             {
-                return NotFound(new { message = "Khong tim thay giao dich." });
+                return NotFound(new { message = "Không tìm thấy giao dịch." });
             }
 
             var wallet = await _dbContext.Wallets.FirstAsync(x => x.WalletId == transaction.WalletId, cancellationToken);
@@ -280,6 +287,7 @@ namespace SmartSpendAI.Controllers
             });
 
             await _dbContext.SaveChangesAsync(cancellationToken);
+            await BroadcastAiReminderAsync(userId.Value, cancellationToken);
             return Ok(new { message = "Da xoa giao dich." });
         }
 
@@ -320,8 +328,8 @@ namespace SmartSpendAI.Controllers
 
                 var level = percentage >= 100 ? "Danger" : "Warning";
                 var message = percentage >= 100
-                    ? $"Ban da vuot ngan sach {budget.Category.Name} thang nay."
-                    : $"Ban da dung {percentage:0}% ngan sach {budget.Category.Name}.";
+                    ? $"Bạn đã vượt ngân sách {budget.Category.Name} tháng này."
+                    : $"Bạn đã dùng {percentage:0}% ngân sách {budget.Category.Name}.";
 
                 var alert = new BudgetAlert
                 {
@@ -345,6 +353,30 @@ namespace SmartSpendAI.Controllers
                         createdAt = alert.CreatedAt
                     }, cancellationToken);
             }
+        }
+
+        private async Task BroadcastAiReminderAsync(int userId, CancellationToken cancellationToken)
+        {
+            var reminders = await _smartReminderService.GetMonthlyRemindersAsync(userId, cancellationToken);
+            var reminder = reminders.FirstOrDefault();
+            if (reminder is null)
+            {
+                return;
+            }
+
+            await _hubContext.Clients.Group($"user:{userId}")
+                .SendAsync("aiReminder", new
+                {
+                    reminderId = $"ai-{DateTime.UtcNow:yyyyMMddHHmmssfff}",
+                    kind = "AiReminder",
+                    source = "AI",
+                    message = reminder.Message,
+                    level = reminder.Level,
+                    tone = reminder.Tone,
+                    categoryName = reminder.CategoryName,
+                    percentage = reminder.Percentage,
+                    createdAt = reminder.CreatedAt
+                }, cancellationToken);
         }
     }
 }

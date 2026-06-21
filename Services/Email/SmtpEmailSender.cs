@@ -70,21 +70,21 @@ namespace SmartSpendAI.Services.Email
         {
             if (string.IsNullOrWhiteSpace(host))
             {
-                var error = "SMTP chua cau hinh: Smtp:Host dang rong.";
+                var error = "SMTP chưa cấu hình: Smtp:Host đang rỗng.";
                 _logger.LogError("{Error} To={ToEmail} Subject={Subject}", error, toEmail, subject);
                 throw new InvalidOperationException(error);
             }
 
             if (string.IsNullOrWhiteSpace(fromEmail))
             {
-                var error = "SMTP chua cau hinh: Smtp:FromEmail dang rong.";
+                var error = "SMTP chưa cấu hình: Smtp:FromEmail đang rỗng.";
                 _logger.LogError("{Error} To={ToEmail} Subject={Subject}", error, toEmail, subject);
                 throw new InvalidOperationException(error);
             }
 
             if (LooksLikePlaceholder(host) || LooksLikePlaceholder(fromEmail))
             {
-                var error = "SMTP chua cau hinh: ban dang dung gia tri mau trong appsettings.Local.json.";
+                var error = "SMTP chưa cấu hình: bạn đang dùng giá trị mẫu trong appsettings.Local.json.";
                 _logger.LogError("{Error} To={ToEmail} Subject={Subject}", error, toEmail, subject);
                 throw new InvalidOperationException(error);
             }
@@ -98,14 +98,14 @@ namespace SmartSpendAI.Services.Email
 
             if (string.IsNullOrWhiteSpace(username) || LooksLikePlaceholder(username))
             {
-                var error = "SMTP chua cau hinh: Smtp:Username dang rong hoac placeholder.";
+                var error = "SMTP chưa cấu hình: Smtp:Username đang rỗng hoặc placeholder.";
                 _logger.LogError("{Error} To={ToEmail} Subject={Subject}", error, toEmail, subject);
                 throw new InvalidOperationException(error);
             }
 
             if (string.IsNullOrWhiteSpace(password) || LooksLikePlaceholder(password))
             {
-                var error = "SMTP chua cau hinh: Smtp:Password dang rong. Hay dung Gmail App Password 16 ky tu.";
+                var error = "SMTP chưa cấu hình: Smtp:Password đang rỗng. Hãy dùng Gmail App Password 16 ký tự.";
                 _logger.LogError("{Error} To={ToEmail} Subject={Subject}", error, toEmail, subject);
                 throw new InvalidOperationException(error);
             }

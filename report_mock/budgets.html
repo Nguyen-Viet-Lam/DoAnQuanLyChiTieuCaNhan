@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartSpend AI - Budgets Snapshot</title>
+  <link rel="stylesheet" href="./snapshot.css">
+</head>
+<body data-layout="app" data-theme="light">
+  <div class="page-shell">
+    <aside class="app-sidebar mock-sidebar">
+      <div class="sidebar-title">Finance Workspace</div>
+      <nav class="sidebar-nav">
+        <a class="sidebar-link" href="#"><span class="sidebar-link-label">Dashboard</span></a>
+        <a class="sidebar-link" href="#"><span class="sidebar-link-label">Ví</span></a>
+        <a class="sidebar-link" href="#"><span class="sidebar-link-label">Giao dịch</span></a>
+        <a class="sidebar-link is-active" href="#"><span class="sidebar-link-label">Ngân sách</span></a>
+        <a class="sidebar-link" href="#"><span class="sidebar-link-label">Báo cáo</span></a>
+      </nav>
+    </aside>
+    <div class="app-frame">
+      <header class="app-topbar">
+        <div class="mock-topbar">
+          <div class="topbar-copy">
+            <h1>Theo dõi ngân sách theo tháng</h1>
+            <p>Thiết lập hạn mức chi tiêu theo danh mục và theo dõi mức độ sử dụng bằng cảnh báo trực quan.</p>
+          </div>
+          <div class="mock-chip">SignalR <strong>Alert Hub</strong></div>
+        </div>
+      </header>
+      <main class="app-content">
+        <section class="app-section">
+          <div class="dashboard-grid">
+            <article class="panel">
+              <h2>Thiết lập budget</h2>
+              <div class="form-grid">
+                <div class="field"><label>Danh mục chi</label><input class="input" value="Ăn uống"></div>
+                <div class="field"><label>Tháng</label><input class="input" value="2026-06"></div>
+              </div>
+              <div class="field"><label>Hạn mức</label><input class="input" value="1500000"></div>
+              <button class="btn btn-primary" type="button">Lưu ngân sách</button>
+            </article>
+            <article class="panel">
+              <h2>Ý nghĩa màu cảnh báo</h2>
+              <ul class="feature-list">
+                <li><span class="tag tag-safe">Safe</span> dưới 80% budget.</li>
+                <li><span class="tag tag-warning">Warning</span> từ 80% đến dưới 100% budget.</li>
+                <li><span class="tag tag-danger">Danger</span> vượt 100% budget.</li>
+              </ul>
+              <p class="muted">Khi phát sinh Warning hoặc Danger, hệ thống sẽ lưu BudgetAlert và gửi thông báo real-time.</p>
+            </article>
+          </div>
+
+          <article class="table-card">
+            <div class="table-toolbar">
+              <div>
+                <h3>Danh sách ngân sách</h3>
+                <p class="muted">Các budget đang hoạt động trong tháng 06/2026.</p>
+              </div>
+            </div>
+            <div class="stack">
+              <div>
+                <div class="inline-actions" style="justify-content:space-between;"><strong>Ăn uống</strong><span class="status-pill status-warning">Warning</span></div>
+                <div class="mock-progress"><span style="width:89%; background:#f59e0b;"></span></div>
+                <div class="muted" style="margin-top:8px;">1.338.000 / 1.500.000 đ</div>
+              </div>
+              <div>
+                <div class="inline-actions" style="justify-content:space-between;"><strong>Hóa đơn</strong><span class="status-pill status-safe">Safe</span></div>
+                <div class="mock-progress"><span style="width:76%; background:#16a34a;"></span></div>
+                <div class="muted" style="margin-top:8px;">2.900.000 / 3.800.000 đ</div>
+              </div>
+              <div>
+                <div class="inline-actions" style="justify-content:space-between;"><strong>Giải trí</strong><span class="status-pill status-danger">Danger</span></div>
+                <div class="mock-progress"><span style="width:100%; background:#dc2626;"></span></div>
+                <div class="muted" style="margin-top:8px;">420.000 / 350.000 đ</div>
+              </div>
+            </div>
+          </article>
+        </section>
+      </main>
+    </div>
+  </div>
+</body>
+</html>

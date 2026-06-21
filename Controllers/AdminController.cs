@@ -59,12 +59,12 @@ namespace SmartSpendAI.Controllers
             var user = await _dbContext.Users.FirstOrDefaultAsync(x => x.UserId == id, cancellationToken);
             if (user is null)
             {
-                return NotFound(new { message = "Khong tim thay user." });
+                return NotFound(new { message = "Không tìm thấy người dùng." });
             }
 
             user.IsLocked = true;
             await _dbContext.SaveChangesAsync(cancellationToken);
-            return Ok(new { message = "Da khoa tai khoan." });
+            return Ok(new { message = "Đã khóa tài khoản." });
         }
 
         [HttpPost("users/{id:int}/unlock")]
@@ -73,12 +73,12 @@ namespace SmartSpendAI.Controllers
             var user = await _dbContext.Users.FirstOrDefaultAsync(x => x.UserId == id, cancellationToken);
             if (user is null)
             {
-                return NotFound(new { message = "Khong tim thay user." });
+                return NotFound(new { message = "Không tìm thấy người dùng." });
             }
 
             user.IsLocked = false;
             await _dbContext.SaveChangesAsync(cancellationToken);
-            return Ok(new { message = "Da mo khoa tai khoan." });
+            return Ok(new { message = "Đã mở khóa tài khoản." });
         }
 
         [HttpGet("keywords")]
@@ -120,7 +120,7 @@ namespace SmartSpendAI.Controllers
 
             _dbContext.Keywords.Add(keyword);
             await _dbContext.SaveChangesAsync(cancellationToken);
-            return Ok(new { message = "Da them tu khoa." });
+            return Ok(new { message = "Đã thêm từ khóa." });
         }
 
         [HttpPut("keywords/{id:int}")]
@@ -134,7 +134,7 @@ namespace SmartSpendAI.Controllers
             var keyword = await _dbContext.Keywords.FirstOrDefaultAsync(x => x.KeywordEntryId == id, cancellationToken);
             if (keyword is null)
             {
-                return NotFound(new { message = "Khong tim thay tu khoa." });
+                return NotFound(new { message = "Không tìm thấy từ khóa." });
             }
 
             keyword.Word = request.Word.Trim().ToLowerInvariant();
@@ -143,7 +143,7 @@ namespace SmartSpendAI.Controllers
             keyword.IsActive = request.IsActive;
             await _dbContext.SaveChangesAsync(cancellationToken);
 
-            return Ok(new { message = "Da cap nhat tu khoa." });
+            return Ok(new { message = "Đã cập nhật từ khóa." });
         }
 
         [HttpDelete("keywords/{id:int}")]
@@ -152,12 +152,12 @@ namespace SmartSpendAI.Controllers
             var keyword = await _dbContext.Keywords.FirstOrDefaultAsync(x => x.KeywordEntryId == id, cancellationToken);
             if (keyword is null)
             {
-                return NotFound(new { message = "Khong tim thay tu khoa." });
+                return NotFound(new { message = "Không tìm thấy từ khóa." });
             }
 
             _dbContext.Keywords.Remove(keyword);
             await _dbContext.SaveChangesAsync(cancellationToken);
-            return Ok(new { message = "Da xoa tu khoa." });
+            return Ok(new { message = "Đã xóa từ khóa." });
         }
 
         [HttpGet("audit-logs")]
@@ -173,7 +173,7 @@ namespace SmartSpendAI.Controllers
                 .Select(x => new AdminAuditLogResponse
                 {
                     AuditLogId = x.AuditLogId,
-                    Actor = x.ActorUser != null ? x.ActorUser.Username : "system",
+                    Actor = x.ActorUser != null ? x.ActorUser.Username : "hệ thống",
                     Action = x.Action,
                     TargetType = x.TargetType,
                     TargetId = x.TargetId,

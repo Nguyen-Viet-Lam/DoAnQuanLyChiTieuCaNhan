@@ -42,7 +42,7 @@ Latest migrations:
 - `AddUserPersonalKeywords`
 
 ## Run Local (No Docker)
-1. Ensure SQL Server is available (example: `localhost,1433`).
+1. Ensure SQL Server is available (example: `.\SQLEXPRESS`).
 2. Check `ConnectionStrings:DefaultConnection` in `appsettings.json`.
 3. Optional local override:
 - create `appsettings.Local.json` from `appsettings.Local.example.json`

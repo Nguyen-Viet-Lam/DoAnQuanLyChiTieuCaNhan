@@ -65,7 +65,7 @@ namespace SmartSpendAI.Controllers
             var normalizedName = NormalizeName(request.Name);
             if (string.IsNullOrWhiteSpace(normalizedName))
             {
-                return BadRequest(new { message = "Ten danh muc khong hop le." });
+                return BadRequest(new { message = "Tên danh mục không hợp lệ." });
             }
 
             var normalizedType = NormalizeCategoryType(request.Type);
@@ -78,7 +78,7 @@ namespace SmartSpendAI.Controllers
                 .AnyAsync(x => x.Name == normalizedName && x.Type == normalizedType, cancellationToken);
             if (duplicated)
             {
-                return Conflict(new { message = "Danh muc nay da ton tai." });
+                return Conflict(new { message = "Danh mục này đã tồn tại." });
             }
 
             var category = new Category
@@ -112,13 +112,13 @@ namespace SmartSpendAI.Controllers
             var category = await _dbContext.Categories.FirstOrDefaultAsync(x => x.CategoryId == id, cancellationToken);
             if (category is null)
             {
-                return NotFound(new { message = "Khong tim thay danh muc." });
+                return NotFound(new { message = "Không tìm thấy danh mục." });
             }
 
             var normalizedName = NormalizeName(request.Name);
             if (string.IsNullOrWhiteSpace(normalizedName))
             {
-                return BadRequest(new { message = "Ten danh muc khong hop le." });
+                return BadRequest(new { message = "Tên danh mục không hợp lệ." });
             }
 
             var normalizedType = NormalizeCategoryType(request.Type);
@@ -131,7 +131,7 @@ namespace SmartSpendAI.Controllers
                 .AnyAsync(x => x.CategoryId != id && x.Name == normalizedName && x.Type == normalizedType, cancellationToken);
             if (duplicated)
             {
-                return Conflict(new { message = "Danh muc nay da ton tai." });
+                return Conflict(new { message = "Danh mục này đã tồn tại." });
             }
 
             category.Name = normalizedName;
@@ -152,7 +152,7 @@ namespace SmartSpendAI.Controllers
             var category = await _dbContext.Categories.FirstOrDefaultAsync(x => x.CategoryId == id, cancellationToken);
             if (category is null)
             {
-                return NotFound(new { message = "Khong tim thay danh muc." });
+                return NotFound(new { message = "Không tìm thấy danh mục." });
             }
 
             var isInUse = await _dbContext.Transactions.AnyAsync(x => x.CategoryId == id, cancellationToken) ||
@@ -161,7 +161,7 @@ namespace SmartSpendAI.Controllers
                           await _dbContext.UserPersonalKeywords.AnyAsync(x => x.CategoryId == id, cancellationToken);
             if (isInUse)
             {
-                return BadRequest(new { message = "Khong the xoa danh muc dang duoc su dung." });
+                return BadRequest(new { message = "Không thể xóa danh mục đang được sử dụng." });
             }
 
             _dbContext.Categories.Remove(category);

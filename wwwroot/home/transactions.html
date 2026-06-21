@@ -64,6 +64,16 @@
                   <label for="transactionNote">Ghi chú</label>
                   <textarea class="textarea" id="transactionNote" name="note"></textarea>
                 </div>
+                <div class="panel" style="padding:16px;">
+                  <div class="panel-header" style="margin-bottom:8px;">
+                    <div>
+                      <h3>AI Smart Input</h3>
+                      <p class="muted">Nhap mo ta giao dich, AI se goi y danh muc, loai va vi dua tren lich su cua ban.</p>
+                    </div>
+                    <button class="btn btn-secondary" type="button" id="smartInputSuggestButton">AI goi y</button>
+                  </div>
+                  <div id="smartInputSuggestion" class="muted">Chua co goi y AI.</div>
+                </div>
                 <div class="inline-actions">
                   <button class="btn btn-primary" type="submit">Lưu giao dịch</button>
                   <button class="btn btn-secondary" type="button" id="cancelTransactionEdit" hidden>Hủy chỉnh sửa</button>

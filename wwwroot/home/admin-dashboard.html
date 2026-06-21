@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Dashboard | SmartSpend AI</title>
+  <title>Trung tâm quản trị | SmartSpend AI</title>
   <link rel="stylesheet" href="/css/style.css">
   <script src="/js/auth.js" defer></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js" defer></script>
   <script src="/js/app-shell.js" defer></script>
   <script src="/js/finance-pages.js" defer></script>
 </head>
-<body data-layout="app" data-page="admin-dashboard" data-page-title="Admin Dashboard" data-required-role="SystemAdmin">
+<body data-layout="app" data-page="admin-dashboard" data-page-title="Trung tâm quản trị" data-required-role="SystemAdmin">
   <div class="page-shell">
     <aside class="app-sidebar" id="appSidebar"></aside>
     <div class="app-frame">
@@ -19,14 +19,14 @@
         <section class="app-section">
           <div id="adminDashboardMessage" class="message" hidden></div>
           <div class="metrics-grid">
-            <article class="metric-card"><div class="metric-label">User mới hôm nay</div><div class="metric-value" id="adminNewUsersToday">0</div></article>
-            <article class="metric-card"><div class="metric-label">Transactions hôm nay</div><div class="metric-value" id="adminTransactionsToday">0</div></article>
+            <article class="metric-card"><div class="metric-label">Người dùng mới hôm nay</div><div class="metric-value" id="adminNewUsersToday">0</div></article>
+            <article class="metric-card"><div class="metric-label">Giao dịch hôm nay</div><div class="metric-value" id="adminTransactionsToday">0</div></article>
             <article class="metric-card"><div class="metric-label">Tổng người dùng</div><div class="metric-value" id="adminTotalUsers">0</div></article>
-            <article class="metric-card"><div class="metric-label">Keyword AI (mở rộng)</div><div class="metric-value" id="adminTotalKeywords">0</div></article>
+            <article class="metric-card"><div class="metric-label">Từ khóa AI</div><div class="metric-value" id="adminTotalKeywords">0</div></article>
           </div>
           <div class="panel">
             <h2>Vai trò của trang này</h2>
-            <p class="muted">Admin Dashboard là khung quản trị cơ bản để trình bày phân quyền và thống kê hệ thống. Trong phiên bản khung hiện tại, nhóm ưu tiên phần tổng quan và quản lý user trước; các module nâng cao sẽ được bổ sung sau.</p>
+            <p class="muted">Trung tâm quản trị là không gian dành riêng cho admin để theo dõi hệ thống, quản lý người dùng, danh mục dùng chung và lịch sử audit. Các chức năng tại đây được tách khỏi luồng người dùng để tránh lẫn ngữ cảnh.</p>
           </div>
         </section>
       </main>

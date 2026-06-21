@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartSpend AI - Login Snapshot</title>
+  <link rel="stylesheet" href="./snapshot.css">
+</head>
+<body data-layout="public" data-theme="light">
+  <header class="public-header">
+    <div class="container">
+      <a class="brand" href="#"><span class="brand-mark">S</span><span>SmartSpend AI</span></a>
+      <div class="header-actions">
+        <button class="theme-toggle" type="button">Theme <span>Light</span></button>
+        <a class="btn btn-secondary" href="#">Đăng ký</a>
+      </div>
+    </div>
+  </header>
+  <main class="auth-layout">
+    <div class="container two-column">
+      <section class="auth-card">
+        <div class="auth-heading">
+          <span class="eyebrow">Welcome back</span>
+          <h1>Đăng nhập để quản lý dòng tiền mỗi ngày</h1>
+          <p>Hệ thống sử dụng JWT và phân quyền theo vai trò để điều hướng tới dashboard người dùng hoặc trang quản trị.</p>
+        </div>
+        <form class="form-stack">
+          <div class="field">
+            <label>Email hoặc tên đăng nhập</label>
+            <input class="input" value="demo.smartspend">
+          </div>
+          <div class="field">
+            <label>Mật khẩu</label>
+            <input class="input" type="password" value="Demo123!">
+          </div>
+          <label class="inline-checkbox"><input type="checkbox" checked> Ghi nhớ đăng nhập trên thiết bị này</label>
+          <button class="btn btn-primary btn-block" type="button">Đăng nhập</button>
+        </form>
+        <div class="inline-actions" style="margin-top:18px; justify-content:space-between;">
+          <a href="#" class="muted">Quên mật khẩu?</a>
+          <a href="#" class="muted">Chưa có tài khoản?</a>
+        </div>
+      </section>
+      <aside class="auth-aside">
+        <div>
+          <div class="card-kicker">SmartSpend flow</div>
+          <h2>Ba điểm nổi bật khi demo luồng xác thực</h2>
+        </div>
+        <ul class="feature-list">
+          <li>OTP email giúp luồng đăng ký có chiều sâu hơn form auth cơ bản.</li>
+          <li>Đăng nhập xong vào thẳng khu vực tài chính có dashboard và cảnh báo.</li>
+          <li>System Admin có trang riêng để theo dõi user và hoạt động hệ thống.</li>
+        </ul>
+      </aside>
+    </div>
+  </main>
+</body>
+</html>

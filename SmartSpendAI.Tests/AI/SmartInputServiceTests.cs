@@ -58,6 +58,58 @@ public sealed class SmartInputServiceTests
         Assert.Equal(2, learned.UsageCount);
     }
 
+    [Fact]
+    public async Task ParseAsync_UsesTransactionHistory_ToSuggestWalletAndType()
+    {
+        await using var dbContext = CreateDbContext();
+        var foodCategory = new Category { CategoryId = 1, Name = "An uong", Type = "Expense", Icon = "utensils", Color = "#ff7a18", IsSystem = true };
+        var incomeCategory = new Category { CategoryId = 2, Name = "Luong", Type = "Income", Icon = "wallet", Color = "#16a34a", IsSystem = true };
+        var cashWallet = new Wallet { WalletId = 10, UserId = 7, Name = "Tien mat", Type = "Cash", Balance = 1_000_000m, IsDefault = false, CreatedAt = DateTime.UtcNow };
+        var bankWallet = new Wallet { WalletId = 11, UserId = 7, Name = "Tai khoan ngan hang", Type = "Bank", Balance = 5_000_000m, IsDefault = true, CreatedAt = DateTime.UtcNow };
+
+        dbContext.Categories.AddRange(foodCategory, incomeCategory);
+        dbContext.Wallets.AddRange(cashWallet, bankWallet);
+        dbContext.Transactions.AddRange(
+            new TransactionEntry
+            {
+                TransactionEntryId = 1,
+                UserId = 7,
+                WalletId = 10,
+                Wallet = cashWallet,
+                CategoryId = 1,
+                Category = foodCategory,
+                Type = "Expense",
+                Amount = 45_000m,
+                Note = "An trua van phong",
+                TransactionDate = DateTime.UtcNow.AddDays(-5),
+                CreatedAt = DateTime.UtcNow
+            },
+            new TransactionEntry
+            {
+                TransactionEntryId = 2,
+                UserId = 7,
+                WalletId = 11,
+                Wallet = bankWallet,
+                CategoryId = 2,
+                Category = incomeCategory,
+                Type = "Income",
+                Amount = 15_000_000m,
+                Note = "Luong thang nay",
+                TransactionDate = DateTime.UtcNow.AddDays(-3),
+                CreatedAt = DateTime.UtcNow
+            });
+        await dbContext.SaveChangesAsync();
+
+        var service = new SmartInputService(dbContext);
+        var result = await service.ParseAsync("An trua 45k", 7, CancellationToken.None);
+
+        Assert.Equal(1, result.SuggestedCategoryId);
+        Assert.Equal("Expense", result.SuggestedType);
+        Assert.Equal(10, result.SuggestedWalletId);
+        Assert.Equal("Tien mat", result.SuggestedWalletName);
+        Assert.Contains(result.Reasoning, item => item.Contains("lịch sử giao dịch", StringComparison.OrdinalIgnoreCase));
+    }
+
     private static AppDbContext CreateDbContext()
     {
         var options = new DbContextOptionsBuilder<AppDbContext>()

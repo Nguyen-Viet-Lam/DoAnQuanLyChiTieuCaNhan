@@ -21,5 +21,9 @@ namespace SmartSpendAI.Models.Dtos.Dashboard
         public List<string> Insights { get; set; } = [];
 
         public List<string> Forecasts { get; set; } = [];
+
+        public ForecastSummaryDto? ForecastSummary { get; set; }
+
+        public List<AiReminderResponse> AiReminders { get; set; } = [];
     }
 }

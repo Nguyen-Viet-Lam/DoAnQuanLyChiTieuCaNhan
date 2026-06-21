@@ -46,7 +46,7 @@ namespace SmartSpendAI.Services.Otp
                 return new OtpDispatchResult
                 {
                     Success = false,
-                    Message = "Email chua dang ky tai khoan."
+                    Message = "Email chưa đăng ký tài khoản."
                 };
             }
 
@@ -55,7 +55,7 @@ namespace SmartSpendAI.Services.Otp
                 return new OtpDispatchResult
                 {
                     Success = false,
-                    Message = "Email da duoc xac thuc."
+                    Message = "Email đã được xác thực."
                 };
             }
 
@@ -152,7 +152,7 @@ namespace SmartSpendAI.Services.Otp
                 return new OtpVerificationResult
                 {
                     Success = false,
-                    Message = "Khong tim thay OTP hop le."
+                    Message = "Không tìm thấy OTP hợp lệ."
                 };
             }
 
@@ -180,14 +180,32 @@ namespace SmartSpendAI.Services.Otp
                 };
             }
 
-            if (!VerifyOtp(otpCode, otpEntity.OtpSalt, otpEntity.OtpHash))
+            bool isOtpValid;
+            try
+            {
+                isOtpValid = VerifyOtp(otpCode, otpEntity.OtpSalt, otpEntity.OtpHash);
+            }
+            catch (Exception ex)
+            {
+                otpEntity.IsUsed = true;
+                otpEntity.UsedAt = now;
+                await _dbContext.SaveChangesAsync(cancellationToken);
+                _logger.LogWarning(ex, "OTP payload is invalid for {Purpose} {Email}.", purpose, normalizedEmail);
+                return new OtpVerificationResult
+                {
+                    Success = false,
+                    Message = "OTP không hợp lệ. Vui lòng yêu cầu mã mới."
+                };
+            }
+
+            if (!isOtpValid)
             {
                 otpEntity.AttemptCount += 1;
                 await _dbContext.SaveChangesAsync(cancellationToken);
                 return new OtpVerificationResult
                 {
                     Success = false,
-                    Message = "OTP khong chinh xac."
+                    Message = "OTP không chính xác."
                 };
             }
 
@@ -210,7 +228,7 @@ namespace SmartSpendAI.Services.Otp
                 Success = true,
                 Message = purpose == OtpPurposes.Register
                     ? "Xac thuc email thanh cong."
-                    : "OTP dat lai mat khau hop le."
+                    : "OTP đặt lại mật khẩu hợp lệ."
             };
         }
 
@@ -222,10 +240,10 @@ namespace SmartSpendAI.Services.Otp
             CancellationToken cancellationToken)
         {
             var subject = purpose == OtpPurposes.Register
-                ? "SmartSpend - Ma OTP xac thuc tai khoan"
-                : "SmartSpend - Ma OTP dat lai mat khau";
+                ? "SmartSpend - Mã OTP xác thực tài khoản"
+                : "SmartSpend - Mã OTP đặt lại mật khẩu";
 
-            var title = purpose == OtpPurposes.Register ? "xac thuc tai khoan" : "dat lai mat khau";
+            var title = purpose == OtpPurposes.Register ? "xác thực tài khoản" : "đặt lại mật khẩu";
             var textBody = $"Ma OTP de {title} cua ban la: {otpCode}. Ma co hieu luc den {expiresAt:yyyy-MM-dd HH:mm:ss} UTC.";
             var htmlBody = $"<p>Ma OTP de {title} cua ban la:</p><h2>{otpCode}</h2><p>Ma co hieu luc den <strong>{expiresAt:yyyy-MM-dd HH:mm:ss} UTC</strong>.</p>";
 

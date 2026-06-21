@@ -65,7 +65,7 @@ namespace SmartSpendAI.Controllers
                 var walletCount = await _dbContext.Wallets.CountAsync(x => x.UserId == userId, cancellationToken);
                 if (walletCount >= 3)
                 {
-                    return BadRequest(new { message = "Tai khoan Standard chi tao toi da 3 vi." });
+                    return BadRequest(new { message = "Tài khoản Standard chỉ tạo tối đa 3 ví." });
                 }
             }
 
@@ -126,7 +126,7 @@ namespace SmartSpendAI.Controllers
             var wallet = await _dbContext.Wallets.FirstOrDefaultAsync(x => x.WalletId == id && x.UserId == userId, cancellationToken);
             if (wallet is null)
             {
-                return NotFound(new { message = "Khong tim thay vi." });
+                return NotFound(new { message = "Không tìm thấy ví." });
             }
 
             wallet.Name = request.Name.Trim();
@@ -167,12 +167,12 @@ namespace SmartSpendAI.Controllers
 
             if (wallet is null)
             {
-                return NotFound(new { message = "Khong tim thay vi." });
+                return NotFound(new { message = "Không tìm thấy ví." });
             }
 
             if (wallet.Transactions.Count > 0)
             {
-                return BadRequest(new { message = "Khong the xoa vi da co giao dich." });
+                return BadRequest(new { message = "Không thể xóa ví đã có giao dịch." });
             }
 
             _dbContext.Wallets.Remove(wallet);
@@ -218,12 +218,12 @@ namespace SmartSpendAI.Controllers
 
             if (fromWallet is null || toWallet is null)
             {
-                return BadRequest(new { message = "Vi nguon hoac vi dich khong hop le." });
+                return BadRequest(new { message = "Ví nguồn hoặc ví đích không hợp lệ." });
             }
 
             if (fromWallet.Balance < request.Amount)
             {
-                return BadRequest(new { message = "So du vi nguon khong du." });
+                return BadRequest(new { message = "Số dư ví nguồn không đủ." });
             }
 
             fromWallet.Balance -= request.Amount;

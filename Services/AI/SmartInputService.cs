@@ -10,6 +10,7 @@ namespace SmartSpendAI.Services.AI
     public class SmartInputService : ISmartInputService
     {
         private readonly AppDbContext _dbContext;
+        private const int HistoryTransactionLimit = 150;
         private static readonly HashSet<string> NoiseKeywords =
         [
             "chi",
@@ -40,8 +41,21 @@ namespace SmartSpendAI.Services.AI
             var transactionDate = ExtractDate(normalized);
 
             var matchedKeywords = new List<string>();
+            var reasoning = new List<string>();
             Category? category = null;
+            Wallet? wallet = null;
             var usedPersonalKeyword = false;
+            var usedHistoryInference = false;
+
+            var historicalTransactions = await _dbContext.Transactions
+                .AsNoTracking()
+                .Include(x => x.Category)
+                .Include(x => x.Wallet)
+                .Where(x => x.UserId == userId)
+                .OrderByDescending(x => x.TransactionDate)
+                .ThenByDescending(x => x.TransactionEntryId)
+                .Take(HistoryTransactionLimit)
+                .ToListAsync(cancellationToken);
 
             var personalKeywords = await _dbContext.UserPersonalKeywords
                 .AsNoTracking()
@@ -67,6 +81,7 @@ namespace SmartSpendAI.Services.AI
                 matchedKeywords.Add(personalKeyword.Keyword);
                 category = personalKeyword.Category;
                 usedPersonalKeyword = true;
+                reasoning.Add($"Học từ lịch sử sửa tay: \"{personalKeyword.Keyword}\"");
                 break;
             }
 
@@ -94,7 +109,77 @@ namespace SmartSpendAI.Services.AI
                         category = keyword.Category;
                     }
                 }
+
+                if (category is not null && matchedKeywords.Count > 0)
+                {
+                    reasoning.Add($"Nhận diện từ khóa hệ thống: {string.Join(", ", matchedKeywords.Distinct(StringComparer.OrdinalIgnoreCase))}");
+                }
             }
+
+            var historySuggestion = SuggestFromHistory(normalized, amount, historicalTransactions);
+            if (historySuggestion is not null)
+            {
+                if (category is null)
+                {
+                    category = historySuggestion.Category;
+                    usedHistoryInference = true;
+                }
+
+                wallet = historySuggestion.Wallet;
+
+                foreach (var reason in historySuggestion.Reasons)
+                {
+                    if (!reasoning.Any(item => string.Equals(item, reason, StringComparison.OrdinalIgnoreCase)))
+                    {
+                        reasoning.Add(reason);
+                    }
+                }
+
+                foreach (var keyword in historySuggestion.MatchedTokens)
+                {
+                    if (!matchedKeywords.Any(item => string.Equals(item, keyword, StringComparison.OrdinalIgnoreCase)))
+                    {
+                        matchedKeywords.Add(keyword);
+                    }
+                }
+            }
+
+            if (wallet is null && category is not null)
+            {
+                wallet = historicalTransactions
+                    .Where(x => x.CategoryId == category.CategoryId)
+                    .GroupBy(x => new { x.WalletId, WalletName = x.Wallet.Name })
+                    .OrderByDescending(group => group.Count())
+                    .ThenByDescending(group => group.Max(item => item.TransactionDate))
+                    .Select(group => new Wallet
+                    {
+                        WalletId = group.Key.WalletId,
+                        Name = group.Key.WalletName
+                    })
+                    .FirstOrDefault();
+
+                if (wallet is not null)
+                {
+                    reasoning.Add($"Gợi ý ví thường dùng cho danh mục {category.Name}: {wallet.Name}");
+                }
+            }
+
+            if (wallet is null)
+            {
+                wallet = await _dbContext.Wallets
+                    .AsNoTracking()
+                    .Where(x => x.UserId == userId)
+                    .OrderByDescending(x => x.IsDefault)
+                    .ThenByDescending(x => x.CreatedAt)
+                    .FirstOrDefaultAsync(cancellationToken);
+
+                if (wallet is not null)
+                {
+                    reasoning.Add($"Mặc định ví theo ưu tiên hiện tại: {wallet.Name}");
+                }
+            }
+
+            var suggestedType = category?.Type ?? InferTransactionType(normalized, amount);
 
             var confidence = 0.20m;
             if (amount > 0)
@@ -104,7 +189,12 @@ namespace SmartSpendAI.Services.AI
 
             if (category is not null)
             {
-                confidence += usedPersonalKeyword ? 0.40m : 0.25m;
+                confidence += usedPersonalKeyword ? 0.40m : usedHistoryInference ? 0.32m : 0.25m;
+            }
+
+            if (wallet is not null)
+            {
+                confidence += 0.10m;
             }
 
             if (!transactionDate.Date.Equals(DateTime.UtcNow.Date))
@@ -119,10 +209,14 @@ namespace SmartSpendAI.Services.AI
                 Amount = amount,
                 SuggestedCategoryId = category?.CategoryId,
                 SuggestedCategoryName = category?.Name ?? string.Empty,
+                SuggestedType = suggestedType,
+                SuggestedWalletId = wallet?.WalletId,
+                SuggestedWalletName = wallet?.Name ?? string.Empty,
                 TransactionDate = transactionDate,
                 NormalizedNote = BuildNormalizedNote(input),
                 AiConfidence = Math.Min(0.99m, confidence),
-                MatchedKeywords = matchedKeywords
+                MatchedKeywords = matchedKeywords,
+                Reasoning = reasoning
             };
         }
 
@@ -134,7 +228,7 @@ namespace SmartSpendAI.Services.AI
 
             if (!categoryExists)
             {
-                throw new InvalidOperationException("Danh muc khong ton tai.");
+                throw new InvalidOperationException("Danh mục không tồn tại.");
             }
 
             var normalizedInput = Normalize(input);
@@ -210,6 +304,100 @@ namespace SmartSpendAI.Services.AI
         private static string BuildNormalizedNote(string input)
         {
             return Regex.Replace(input.Trim(), "\\s+", " ");
+        }
+
+        private static HistorySuggestion? SuggestFromHistory(
+            string normalizedInput,
+            decimal amount,
+            IReadOnlyCollection<TransactionEntry> transactions)
+        {
+            var inputTokens = ExtractMeaningfulTokens(normalizedInput);
+            if (inputTokens.Count == 0)
+            {
+                return null;
+            }
+
+            var candidates = transactions
+                .Where(x => x.Category is not null && x.Wallet is not null)
+                .Select(transaction =>
+                {
+                    var noteTokens = ExtractMeaningfulTokens(Normalize(transaction.Note));
+                    var overlap = inputTokens.Intersect(noteTokens, StringComparer.Ordinal).ToList();
+                    if (overlap.Count == 0)
+                    {
+                        return null;
+                    }
+
+                    var overlapScore = overlap.Count * 3m;
+                    var amountScore = amount > 0 && transaction.Amount > 0
+                        ? 1m - Math.Min(1m, Math.Abs(transaction.Amount - amount) / Math.Max(transaction.Amount, amount))
+                        : 0m;
+                    var recencyBoost = transaction.TransactionDate >= DateTime.UtcNow.AddMonths(-1) ? 1.5m : 0m;
+                    var totalScore = overlapScore + amountScore + recencyBoost;
+
+                    return new
+                    {
+                        Transaction = transaction,
+                        Score = totalScore,
+                        Overlap = overlap
+                    };
+                })
+                .Where(x => x is not null)
+                .OrderByDescending(x => x!.Score)
+                .ThenByDescending(x => x!.Transaction.TransactionDate)
+                .Take(5)
+                .ToList();
+
+            if (candidates.Count == 0)
+            {
+                return null;
+            }
+
+            var best = candidates[0]!;
+            if (best.Score < 3m)
+            {
+                return null;
+            }
+
+            var reasons = new List<string>
+            {
+                $"Gần với lịch sử giao dịch: \"{best.Transaction.Note}\""
+            };
+
+            if (best.Transaction.Wallet is not null)
+            {
+                reasons.Add($"Ví gần giống nhất trong lịch sử: {best.Transaction.Wallet.Name}");
+            }
+
+            return new HistorySuggestion(
+                best.Transaction.Category,
+                best.Transaction.Wallet,
+                reasons,
+                best.Overlap);
+        }
+
+        private static List<string> ExtractMeaningfulTokens(string normalizedInput)
+        {
+            return normalizedInput
+                .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                .Where(token => token.Length >= 3 && !NoiseKeywords.Contains(token))
+                .Where(token => !decimal.TryParse(token.Replace(",", "."), NumberStyles.Any, CultureInfo.InvariantCulture, out _))
+                .Distinct(StringComparer.Ordinal)
+                .Take(10)
+                .ToList();
+        }
+
+        private static string InferTransactionType(string normalizedInput, decimal amount)
+        {
+            if (normalizedInput.Contains("luong", StringComparison.Ordinal) ||
+                normalizedInput.Contains("thuong", StringComparison.Ordinal) ||
+                normalizedInput.Contains("nhan tien", StringComparison.Ordinal) ||
+                normalizedInput.Contains("thu no", StringComparison.Ordinal))
+            {
+                return "Income";
+            }
+
+            return amount >= 0 ? "Expense" : "Income";
         }
 
         private static decimal ExtractAmount(string normalized)
@@ -326,5 +514,11 @@ namespace SmartSpendAI.Services.AI
                 .Replace('\u0111', 'd')
                 .Replace('\u0110', 'D');
         }
+
+        private sealed record HistorySuggestion(
+            Category Category,
+            Wallet? Wallet,
+            List<string> Reasons,
+            List<string> MatchedTokens);
     }
 }

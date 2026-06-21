@@ -1,5 +1,4 @@
 ﻿(function () {
-  const themeKey = "smartspend.theme";
   const desktopSidebarKey = "smartspend.sidebar.desktopCollapsed";
   const toastDuration = 4200;
   const state = {
@@ -12,40 +11,28 @@
   function normalizeRole(role) {
     const value = String(role || "").toLowerCase();
     if (value === "systemadmin" || value === "admin") {
-      return "Admin";
+      return "Quản trị viên";
     }
 
     if (value === "standarduser" || value === "user") {
-      return "User";
+      return "Người dùng";
     }
 
-    return "Guest";
+    return "Khách";
   }
 
   function isAdminRole(role) {
-    return normalizeRole(role) === "Admin";
-  }
-
-  function getTheme() {
-    return window.localStorage.getItem(themeKey) || "light";
+    return normalizeRole(role) === "Quản trị viên";
   }
 
   function setTheme(theme) {
-    document.body.dataset.theme = theme;
-    document.documentElement.dataset.theme = theme;
-    window.localStorage.setItem(themeKey, theme);
-    document.querySelectorAll("[data-theme-label]").forEach((element) => {
-      element.textContent = theme === "light" ? "Light" : "Dark";
-    });
+    const nextTheme = theme === "dark" ? "light" : "light";
+    document.body.dataset.theme = nextTheme;
+    document.documentElement.dataset.theme = nextTheme;
   }
 
   function initTheme() {
-    setTheme(getTheme());
-    document.querySelectorAll("[data-theme-toggle]").forEach((button) => {
-      button.addEventListener("click", () => {
-        setTheme(document.body.dataset.theme === "light" ? "dark" : "light");
-      });
-    });
+    setTheme("light");
   }
 
   function getInitials(user) {
@@ -255,6 +242,10 @@
     return document.body.dataset.pageTitle || "SmartSpend AI";
   }
 
+  function isAdminPage() {
+    return String(document.body.dataset.requiredRole || "").toLowerCase() === "systemadmin";
+  }
+
   async function fetchProfile() {
     try {
       return await api("/api/profile");
@@ -265,7 +256,7 @@
 
   function getNavSections(role) {
     const userItems = [
-      { href: "/home/dashboard.html", label: "Dashboard", key: "dashboard" },
+      { href: "/home/dashboard.html", label: "Tổng quan", key: "dashboard" },
       { href: "/home/wallets.html", label: "Ví", key: "wallets" },
       { href: "/home/transactions.html", label: "Giao dịch", key: "transactions" },
       { href: "/home/budgets.html", label: "Ngân sách", key: "budgets" },
@@ -277,15 +268,14 @@
       { href: "/home/admin-dashboard.html", label: "Tổng quan hệ thống", key: "admin-dashboard" },
       { href: "/home/admin-users.html", label: "Người dùng", key: "admin-users" },
       { href: "/home/admin-categories.html", label: "Danh mục", key: "admin-categories" },
-      { href: "/home/admin-logs.html", label: "Audit logs", key: "admin-logs" },
+      { href: "/home/admin-logs.html", label: "Nhật ký hệ thống", key: "admin-logs" },
     ];
 
-    const sections = [{ title: "Người dùng", items: userItems }];
     if (isAdminRole(role)) {
-      sections.push({ title: "Quản trị", items: adminItems });
+      return [{ title: "Quản trị", items: adminItems }];
     }
 
-    return sections;
+    return [{ title: "Người dùng", items: userItems }];
   }
 
   function getSidebarIcon(key) {
@@ -329,15 +319,21 @@
 
     const activeKey = document.body.dataset.page || "dashboard";
     const sections = getNavSections(user.role);
-    const roleLabel = user.roleDisplay || normalizeRole(user.role);
 
-    const quickLinks = [
-      { href: "/home/guide.html", label: "Hướng dẫn", key: "guide" },
-      { href: "/home/index.html", label: "Trang chủ", key: "home" },
-      { href: "/home/login.html", label: "Đăng xuất", key: "logout", logout: true },
-    ];
+    const adminContext = isAdminRole(user.role) && isAdminPage();
+    const sidebarHeader = adminContext
+      ? `
+        <div class="sidebar-brand-card">
+          <span class="brand-mark">SA</span>
+          <div class="sidebar-brand-copy">
+            <strong>SmartSpend Admin</strong>
+            <small>Trung tâm quản trị</small>
+          </div>
+        </div>`
+      : "";
 
     sidebar.innerHTML = `
+      ${sidebarHeader}
       ${sections
         .map(
           (section) => `
@@ -355,17 +351,11 @@
             </nav>`
         )
         .join("")}
-      <div class="sidebar-title">Nhanh</div>
-      <div class="sidebar-section">
-        ${quickLinks
-          .map(
-            (item) => `
-              <a class="sidebar-link" href="${item.href}" ${item.logout ? "data-auth-logout" : ""}>
-                <span class="sidebar-link-icon" aria-hidden="true">${getSidebarIcon(item.key)}</span>
-                <span class="sidebar-link-label">${escapeHtml(item.label)}</span>
-              </a>`
-          )
-          .join("")}
+      <div class="sidebar-footer">
+        <a class="sidebar-link logout-link" href="#" data-auth-logout>
+          <span class="sidebar-link-icon" aria-hidden="true">${getSidebarIcon("logout")}</span>
+          <span class="sidebar-link-label">Đăng xuất</span>
+        </a>
       </div>`;
 
     sidebar.querySelectorAll("[data-auth-logout]").forEach((element) => {
@@ -384,19 +374,27 @@
     }
 
     const roleLabel = user.roleDisplay || normalizeRole(user.role);
+    const adminContext = isAdminRole(user.role) && isAdminPage();
+    const brandTitle = adminContext ? "Trung tâm quản trị" : "SmartSpend AI";
+    const brandSubtitle = adminContext ? "Khu vực điều hành hệ thống" : "Không gian tài chính";
+    const brandHref = adminContext ? "/home/admin-dashboard.html" : "/home/dashboard.html";
+    const adminRibbon = adminContext
+      ? ""
+      : `
+            <a class="topbar-pill topbar-brand-pill" href="${brandHref}">
+              <span class="brand-mark">S</span>
+              <span class="topbar-pill-copy">
+                <strong>${escapeHtml(brandTitle)}</strong>
+                <small>${escapeHtml(brandSubtitle)}</small>
+              </span>
+            </a>`;
 
     topbar.innerHTML = `
       <div class="topbar-meta">
         <button class="icon-button sidebar-toggle" id="sidebarToggle" type="button" aria-label="Mở menu" aria-controls="appSidebar" aria-expanded="true">☰</button>
         <div class="topbar-overview">
           <div class="topbar-ribbon">
-            <a class="topbar-pill topbar-brand-pill" href="/home/index.html">
-              <span class="brand-mark">S</span>
-              <span class="topbar-pill-copy">
-                <strong>SmartSpend AI</strong>
-                <small>Finance Workspace</small>
-              </span>
-            </a>
+            ${adminRibbon}
             <div class="topbar-pill topbar-user-pill">
               ${getAvatarMarkup(user)}
               <span class="topbar-pill-copy">
@@ -407,15 +405,12 @@
           </div>
           <div class="topbar-copy">
             <h1>${escapeHtml(getPageTitle())}</h1>
-            <p>${escapeHtml(user.email || "Theo dõi ví, giao dịch và cảnh báo theo thời gian thực")}</p>
+            <p>${escapeHtml(user.email || "Theo dõi người dùng, danh mục và nhật ký hệ thống")}</p>
           </div>
         </div>
       </div>
       <div class="inline-actions">
-        <button class="theme-toggle" type="button" data-theme-toggle>
-          Theme <span data-theme-label>${document.body.dataset.theme === "light" ? "Light" : "Dark"}</span>
-        </button>
-        <div style="position: relative;">
+        <div style="position: relative; ${adminContext ? "display:none;" : ""}">
           <button class="icon-button alert-button" id="alertToggle" type="button">
             Cảnh báo <span class="alert-count" id="alertCount">0</span>
           </button>
@@ -582,21 +577,37 @@
     }
 
     alertList.innerHTML = state.alerts
-      .map(
-        (item) => `
+      .map((item) => {
+        const kind = String(item.kind || item.source || "").toLowerCase();
+        const isAiReminder = kind === "aireminder" || kind === "ai";
+        const levelClass = item.level === "Danger" ? "status-danger" : item.level === "Warning" ? "status-warning" : "status-safe";
+        const label = isAiReminder
+          ? "AI"
+          : item.level === "Danger"
+            ? "Vượt mức"
+            : item.level === "Warning"
+              ? "Cảnh báo"
+              : "Thông tin";
+        const sourceLabel = isAiReminder ? '<span class="status-pill status-safe">AI</span>' : "";
+        const readButton = !isAiReminder && !item.isRead ? `<button class="btn btn-ghost" data-alert-read="${item.alertId}">Đã đọc</button>` : "";
+
+        return `
           <div class="alert-item">
             <div class="inline-actions" style="justify-content: space-between; align-items: flex-start;">
               <div>
-                <div class="status-pill ${item.level === "Danger" ? "status-danger" : item.level === "Warning" ? "status-warning" : "status-safe"}">
-                  ${escapeHtml(item.level || "Info")}
+                <div class="inline-actions" style="gap: 8px;">
+                  <div class="status-pill ${levelClass}">
+                    ${escapeHtml(label)}
+                  </div>
+                  ${sourceLabel}
                 </div>
                 <p style="margin: 10px 0 4px;">${escapeHtml(item.message)}</p>
                 <div class="muted">${escapeHtml(formatDateTime(item.createdAt))}</div>
               </div>
-              ${item.isRead ? "" : `<button class="btn btn-ghost" data-alert-read="${item.alertId}">Đã đọc</button>`}
+              ${readButton}
             </div>
-          </div>`
-      )
+          </div>`;
+      })
       .join("");
 
     alertList.querySelectorAll("[data-alert-read]").forEach((button) => {
@@ -651,6 +662,23 @@
         showToast(payload.message, payload.level === "Danger" ? "error" : "warning");
       });
 
+      state.hubConnection.on("aiReminder", (payload) => {
+        state.alerts = [
+          {
+            alertId: payload.reminderId,
+            message: payload.message,
+            level: payload.level || "Info",
+            createdAt: payload.createdAt,
+            isRead: true,
+            kind: payload.kind || "AiReminder",
+            source: payload.source || "AI",
+          },
+          ...state.alerts,
+        ].slice(0, 20);
+        renderAlerts();
+        showToast(payload.message, payload.level === "Serious" ? "warning" : "info");
+      });
+
       try {
         await state.hubConnection.start();
       } catch {
@@ -690,6 +718,11 @@
       isAdmin: Boolean(me.isAdmin),
     };
 
+    if (state.currentUser.isAdmin && !isAdminPage()) {
+      window.location.href = "/home/admin-dashboard.html";
+      return;
+    }
+
     renderSidebar(state.currentUser);
     renderTopbar(state.currentUser);
     await initRealtimeAlerts();
@@ -718,7 +751,7 @@
 
     if (isAuthed) {
       return baseLinks.concat([
-        { href: "/home/dashboard.html", label: "Dashboard" },
+        { href: "/home/dashboard.html", label: "Tổng quan" },
         { href: "/home/profile.html", label: "Hồ sơ" },
       ]);
     }
@@ -731,9 +764,9 @@
 
   function getPublicNavLinks() {
     return [
-      { href: "/home/index.html", label: "Home" },
-      { href: "/home/about.html", label: "About" },
-      { href: "/home/guide.html", label: "Guide" },
+      { href: "/home/index.html", label: "Trang chủ" },
+      { href: "/home/about.html", label: "Giới thiệu" },
+      { href: "/home/guide.html", label: "Hướng dẫn" },
     ];
   }
 

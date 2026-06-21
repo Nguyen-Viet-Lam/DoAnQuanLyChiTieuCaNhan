@@ -54,7 +54,7 @@ namespace SmartSpendAI.Controllers
             var alert = await _dbContext.BudgetAlerts.FirstOrDefaultAsync(x => x.BudgetAlertId == id && x.UserId == userId, cancellationToken);
             if (alert is null)
             {
-                return NotFound(new { message = "Khong tim thay canh bao." });
+                return NotFound(new { message = "Không tìm thấy cảnh báo." });
             }
 
             alert.IsRead = true;

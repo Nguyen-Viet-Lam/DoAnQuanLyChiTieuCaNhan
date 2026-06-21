@@ -116,6 +116,7 @@ builder.Services.AddScoped<ITransactionExportService, TransactionExportService>(
 builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ISmartInputService, SmartInputService>();
+builder.Services.AddScoped<ISmartReminderService, SmartReminderService>();
 builder.Services.AddScoped<ISmartSpendDataSeeder, SmartSpendDataSeeder>();
 builder.Services.AddHostedService<WeeklySummaryEmailHostedService>();
 
@@ -123,17 +124,17 @@ var app = builder.Build();
 
 if (jwtSigningMaterial.IsAsymmetric && jwtSigningMaterial.IsEphemeral)
 {
-    app.Logger.LogWarning("JWT asymmetric mode is using an auto-generated in-memory key pair. Tokens will be invalid after restart.");
+    app.Logger.LogWarning("JWT bất đối xứng đang dùng cặp khóa sinh tự động trong bộ nhớ. Token sẽ mất hiệu lực sau khi ứng dụng khởi động lại.");
 }
 
 var smtpSettings = app.Services.GetRequiredService<IOptions<SmtpSettings>>().Value;
 if (string.IsNullOrWhiteSpace(smtpSettings.Host))
 {
-    app.Logger.LogWarning("SMTP host is empty. OTP email cannot be delivered. Set Smtp:Host/Smtp:Username/Smtp:Password in appsettings.Local.json.");
+    app.Logger.LogWarning("SMTP chưa có Host. Không thể gửi email OTP. Hãy cấu hình Smtp:Host, Smtp:Username và Smtp:Password trong appsettings.Local.json.");
 }
 else if (smtpSettings.UseOAuth2)
 {
-    app.Logger.LogWarning("Local OTP flow currently supports SMTP username/password mode. Set Smtp:UseOAuth2=false unless OAuth2 sender is implemented.");
+    app.Logger.LogWarning("Luồng OTP hiện tại chỉ hỗ trợ SMTP theo tài khoản/mật khẩu. Hãy đặt Smtp:UseOAuth2=false nếu chưa triển khai bộ gửi OAuth2.");
 }
 else if (string.IsNullOrWhiteSpace(smtpSettings.Username) ||
          string.IsNullOrWhiteSpace(smtpSettings.Password) ||
@@ -142,7 +143,7 @@ else if (string.IsNullOrWhiteSpace(smtpSettings.Username) ||
          LooksLikePlaceholder(smtpSettings.Password) ||
          LooksLikePlaceholder(smtpSettings.FromEmail))
 {
-    app.Logger.LogWarning("SMTP credentials are missing. Configure Smtp:Username, Smtp:Password, and Smtp:FromEmail.");
+    app.Logger.LogWarning("Thiếu thông tin xác thực SMTP. Hãy cấu hình Smtp:Username, Smtp:Password và Smtp:FromEmail.");
 }
 
 if (!app.Environment.IsDevelopment())
@@ -164,7 +165,7 @@ app.MapStaticAssets();
 
 app.MapGet("/", () => Results.Redirect("/home/index.html"));
 app.MapGet("/home", () => Results.Redirect("/home/index.html"));
-app.MapGet("/error", () => Results.Problem("Da xay ra loi khong mong muon."));
+app.MapGet("/error", () => Results.Problem("Đã xảy ra lỗi không mong muốn."));
 
 app.Run();
 
@@ -183,19 +184,19 @@ static async Task EnsureSmartSpendSetupAsync(WebApplication app)
         if (options.AutoApplyMigrations)
         {
             await ApplyMigrationsWithRecoveryAsync(app, dbContext, options);
-            app.Logger.LogInformation("SmartSpend migrations applied successfully.");
+            app.Logger.LogInformation("Đã áp dụng migration SmartSpend thành công.");
         }
 
         if (options.Enabled)
         {
             var seeder = scope.ServiceProvider.GetRequiredService<ISmartSpendDataSeeder>();
             await seeder.SeedAsync(CancellationToken.None);
-            app.Logger.LogInformation("SmartSpend development seed completed.");
+            app.Logger.LogInformation("Đã hoàn tất seed dữ liệu phát triển SmartSpend.");
         }
     }
     catch (Exception ex)
     {
-        app.Logger.LogWarning(ex, "SmartSpend setup skipped because database migration/seed could not be completed.");
+        app.Logger.LogWarning(ex, "Bỏ qua bước thiết lập SmartSpend vì không thể hoàn tất migration hoặc seed cơ sở dữ liệu.");
     }
 }
 
@@ -210,7 +211,7 @@ static async Task ApplyMigrationsWithRecoveryAsync(
     }
     catch (Exception ex) when (options.RecreateDatabaseOnMigrationFailure)
     {
-        app.Logger.LogWarning(ex, "Migration failed. Recreating SmartSpend development database from scratch.");
+        app.Logger.LogWarning(ex, "Migration thất bại. Đang tạo lại cơ sở dữ liệu phát triển SmartSpend từ đầu.");
         await dbContext.Database.EnsureDeletedAsync();
         await dbContext.Database.MigrateAsync();
     }

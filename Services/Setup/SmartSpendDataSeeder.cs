@@ -7,6 +7,24 @@ namespace SmartSpendAI.Services.Setup
 {
     public class SmartSpendDataSeeder : ISmartSpendDataSeeder
     {
+        private static readonly Role[] RequiredRoles =
+        [
+            new Role { RoleName = AppRoles.StandardUser },
+            new Role { RoleName = AppRoles.SystemAdmin }
+        ];
+
+        private static readonly Category[] RequiredCategories =
+        [
+            new Category { Name = "An uong", Type = "Expense", Icon = "utensils", Color = "#ff7a18", IsSystem = true },
+            new Category { Name = "Di chuyen", Type = "Expense", Icon = "car", Color = "#00b894", IsSystem = true },
+            new Category { Name = "Giai tri", Type = "Expense", Icon = "film", Color = "#6c5ce7", IsSystem = true },
+            new Category { Name = "Hoa don", Type = "Expense", Icon = "receipt", Color = "#ff4d4f", IsSystem = true },
+            new Category { Name = "Mua sam", Type = "Expense", Icon = "bag", Color = "#0097e6", IsSystem = true },
+            new Category { Name = "Luong", Type = "Income", Icon = "wallet", Color = "#2ecc71", IsSystem = true },
+            new Category { Name = "Thuong", Type = "Income", Icon = "sparkles", Color = "#00cec9", IsSystem = true },
+            new Category { Name = "Khac", Type = "Expense", Icon = "circle", Color = "#95a5a6", IsSystem = true }
+        ];
+
         private readonly AppDbContext _dbContext;
         private readonly SmartSpendSeedOptions _options;
         private readonly ILogger<SmartSpendDataSeeder> _logger;
@@ -28,6 +46,8 @@ namespace SmartSpendAI.Services.Setup
                 return;
             }
 
+            await EnsureBaselineDataAsync(cancellationToken);
+
             var admin = await UpsertUserAsync(
                 _options.AdminUsername,
                 _options.AdminFullName,
@@ -36,7 +56,7 @@ namespace SmartSpendAI.Services.Setup
                 AppRoles.SystemAdmin,
                 cancellationToken);
 
-            _logger.LogInformation("SmartSpend seed ensured admin account {Email}.", admin.Email);
+            _logger.LogInformation("Đã đảm bảo tài khoản quản trị seed cho {Email}.", admin.Email);
 
             if (!_options.SeedDemoData)
             {
@@ -52,7 +72,7 @@ namespace SmartSpendAI.Services.Setup
                 cancellationToken);
 
             await SeedDemoFinanceAsync(demoUser, cancellationToken);
-            _logger.LogInformation("SmartSpend seed ensured demo account {Email}.", demoUser.Email);
+            _logger.LogInformation("Đã đảm bảo tài khoản demo seed cho {Email}.", demoUser.Email);
         }
 
         private async Task<User> UpsertUserAsync(
@@ -110,6 +130,51 @@ namespace SmartSpendAI.Services.Setup
             return user;
         }
 
+        private async Task EnsureBaselineDataAsync(CancellationToken cancellationToken)
+        {
+            foreach (var requiredRole in RequiredRoles)
+            {
+                var role = await _dbContext.Roles
+                    .FirstOrDefaultAsync(x => x.RoleName == requiredRole.RoleName, cancellationToken);
+
+                if (role is null)
+                {
+                    _dbContext.Roles.Add(new Role
+                    {
+                        RoleName = requiredRole.RoleName
+                    });
+                }
+            }
+
+            foreach (var requiredCategory in RequiredCategories)
+            {
+                var category = await _dbContext.Categories
+                    .FirstOrDefaultAsync(
+                        x => x.Name == requiredCategory.Name && x.Type == requiredCategory.Type,
+                        cancellationToken);
+
+                if (category is null)
+                {
+                    _dbContext.Categories.Add(new Category
+                    {
+                        Name = requiredCategory.Name,
+                        Type = requiredCategory.Type,
+                        Icon = requiredCategory.Icon,
+                        Color = requiredCategory.Color,
+                        IsSystem = requiredCategory.IsSystem
+                    });
+                }
+                else
+                {
+                    category.Icon = requiredCategory.Icon;
+                    category.Color = requiredCategory.Color;
+                    category.IsSystem = true;
+                }
+            }
+
+            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
+
         private async Task SeedDemoFinanceAsync(User demoUser, CancellationToken cancellationToken)
         {
             var walletCount = await _dbContext.Wallets.CountAsync(x => x.UserId == demoUser.UserId, cancellationToken);
@@ -131,7 +196,7 @@ namespace SmartSpendAI.Services.Setup
             if (walletCount > 0 || transactionCount > 0 || budgetCount > 0 || alertCount > 0)
             {
                 _logger.LogWarning(
-                    "SmartSpend demo data is incomplete for user {UserId}. Resetting partial seed. Wallets={WalletCount}, Transactions={TransactionCount}, Budgets={BudgetCount}, Alerts={AlertCount}",
+                    "Dữ liệu demo SmartSpend của người dùng {UserId} chưa đầy đủ. Đang đặt lại phần seed dở dang. Ví={WalletCount}, GiaoDịch={TransactionCount}, NgânSách={BudgetCount}, CảnhBáo={AlertCount}",
                     demoUser.UserId,
                     walletCount,
                     transactionCount,
@@ -242,7 +307,7 @@ namespace SmartSpendAI.Services.Setup
                     ActorUserId = demoUser.UserId,
                     Action = "SeededDemoWallets",
                     TargetType = "Wallet",
-                    Metadata = "Created demo wallets for SmartSpend showcase.",
+                    Metadata = "Đã tạo các ví mẫu cho bản demo SmartSpend.",
                     CreatedAt = DateTime.UtcNow
                 },
                 new AuditLog
@@ -250,7 +315,7 @@ namespace SmartSpendAI.Services.Setup
                     ActorUserId = demoUser.UserId,
                     Action = "SeededDemoTransactions",
                     TargetType = "Transaction",
-                    Metadata = "Inserted sample income and expense history for dashboard.",
+                    Metadata = "Đã chèn lịch sử thu chi mẫu cho dashboard.",
                     CreatedAt = DateTime.UtcNow
                 });
 

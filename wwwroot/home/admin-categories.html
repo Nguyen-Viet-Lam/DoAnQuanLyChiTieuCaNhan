@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Categories | SmartSpend AI</title>
+  <title>Quản lý danh mục | SmartSpend AI</title>
   <link rel="stylesheet" href="/css/style.css">
   <script src="/js/auth.js" defer></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js" defer></script>
@@ -21,7 +21,7 @@
             <div class="panel-header">
               <div>
                 <h2>Danh mục mặc định và tùy chỉnh</h2>
-                <p class="muted">Admin quản lý danh mục dùng chung cho nhập giao dịch, ngân sách và AI.</p>
+                <p class="muted">Quản trị viên quản lý danh mục dùng chung cho giao dịch, ngân sách và các gợi ý AI.</p>
               </div>
               <button class="btn btn-secondary" type="button" id="reloadAdminCategories">Làm mới</button>
             </div>
@@ -36,23 +36,23 @@
                 <div class="field">
                   <label for="adminCategoryType">Loại</label>
                   <select class="select" id="adminCategoryType" name="type" required>
-                    <option value="Expense">Expense</option>
-                    <option value="Income">Income</option>
+                    <option value="Expense">Chi tiêu</option>
+                    <option value="Income">Thu nhập</option>
                   </select>
                 </div>
               </div>
               <div class="form-grid">
                 <div class="field">
-                  <label for="adminCategoryIcon">Icon</label>
-                  <input class="input" id="adminCategoryIcon" name="icon" maxlength="48" placeholder="vd: utensils">
+                  <label for="adminCategoryIcon">Biểu tượng</label>
+                  <input class="input" id="adminCategoryIcon" name="icon" maxlength="48" placeholder="Ví dụ: utensils">
                 </div>
                 <div class="field">
-                  <label for="adminCategoryColor">Màu</label>
+                  <label for="adminCategoryColor">Màu sắc</label>
                   <input class="input" id="adminCategoryColor" name="color" maxlength="16" placeholder="#48d1a0">
                 </div>
               </div>
               <div class="inline-actions">
-                <label style="display:flex;gap:10px;align-items:center;">
+                <label class="admin-checkbox-label">
                   <input type="checkbox" id="adminCategoryIsSystem" name="isSystem">
                   <span>Đánh dấu là danh mục hệ thống</span>
                 </label>
@@ -68,7 +68,7 @@
             <div class="table-toolbar">
               <div>
                 <h3>Danh sách danh mục</h3>
-                <p class="muted">Có thể sửa/xóa danh mục chưa phát sinh dữ liệu.</p>
+                <p class="muted">Có thể sửa hoặc xóa những danh mục chưa gắn với dữ liệu phát sinh.</p>
               </div>
             </div>
             <table class="data-table">
@@ -77,9 +77,9 @@
                   <th>ID</th>
                   <th>Tên</th>
                   <th>Loại</th>
-                  <th>Icon</th>
+                  <th>Biểu tượng</th>
                   <th>Màu</th>
-                  <th>Nhóm</th>
+                  <th>Phân loại</th>
                   <th>Hành động</th>
                 </tr>
               </thead>

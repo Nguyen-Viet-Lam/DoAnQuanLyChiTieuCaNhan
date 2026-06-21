@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartSpend AI - Dashboard Snapshot</title>
+  <link rel="stylesheet" href="./snapshot.css">
+</head>
+<body data-layout="app" data-theme="light">
+  <div class="page-shell">
+    <aside class="app-sidebar mock-sidebar">
+      <div class="sidebar-title">Finance Workspace</div>
+      <nav class="sidebar-nav">
+        <a class="sidebar-link is-active" href="#"><span class="sidebar-link-label">Dashboard</span></a>
+        <a class="sidebar-link" href="#"><span class="sidebar-link-label">Ví</span></a>
+        <a class="sidebar-link" href="#"><span class="sidebar-link-label">Giao dịch</span></a>
+        <a class="sidebar-link" href="#"><span class="sidebar-link-label">Ngân sách</span></a>
+        <a class="sidebar-link" href="#"><span class="sidebar-link-label">Báo cáo</span></a>
+      </nav>
+      <div class="sidebar-title">Quản trị</div>
+      <nav class="sidebar-nav">
+        <a class="sidebar-link" href="#"><span class="sidebar-link-label">Admin Dashboard</span></a>
+        <a class="sidebar-link" href="#"><span class="sidebar-link-label">Người dùng</span></a>
+      </nav>
+    </aside>
+    <div class="app-frame">
+      <header class="app-topbar">
+        <div class="mock-topbar">
+          <div>
+            <div class="mock-ribbon">
+              <div class="mock-chip"><span class="brand-mark">S</span><strong>SmartSpend AI</strong></div>
+              <div class="mock-chip"><strong>Nguyen Viet Lam</strong><span class="muted">Standard User</span></div>
+            </div>
+            <div class="topbar-copy" style="margin-top:14px;">
+              <h1>Dashboard tài chính</h1>
+              <p>Toàn cảnh số dư, dòng tiền, cơ cấu chi tiêu và cảnh báo ngân sách theo thời gian thực.</p>
+            </div>
+          </div>
+          <div class="mock-chip">Cảnh báo <strong>3</strong></div>
+        </div>
+      </header>
+      <main class="app-content">
+        <section class="app-section">
+          <div class="metrics-grid">
+            <article class="metric-card"><div class="metric-label">Tổng số dư</div><div class="metric-value">12.450.000 đ</div></article>
+            <article class="metric-card"><div class="metric-label">Tổng thu tháng này</div><div class="metric-value">17.000.000 đ</div></article>
+            <article class="metric-card"><div class="metric-label">Tổng chi tháng này</div><div class="metric-value">6.478.000 đ</div></article>
+            <article class="metric-card"><div class="metric-label">Cảnh báo chưa đọc</div><div class="metric-value">3</div></article>
+          </div>
+
+          <div class="dashboard-grid">
+            <article class="panel">
+              <div class="panel-header">
+                <div>
+                  <h2>Xu hướng Thu - Chi 6 tháng</h2>
+                  <p class="muted">Biểu đồ cột dùng để theo dõi biến động tài chính theo tháng.</p>
+                </div>
+              </div>
+              <div class="mock-bars">
+                <div class="preview-bar"><span style="height:52%;"></span><strong>01</strong></div>
+                <div class="preview-bar"><span style="height:68%;"></span><strong>02</strong></div>
+                <div class="preview-bar"><span style="height:40%;"></span><strong>03</strong></div>
+                <div class="preview-bar"><span style="height:84%;"></span><strong>04</strong></div>
+                <div class="preview-bar"><span style="height:76%;"></span><strong>05</strong></div>
+                <div class="preview-bar"><span style="height:88%;"></span><strong>06</strong></div>
+              </div>
+            </article>
+            <article class="panel">
+              <div class="panel-header">
+                <div>
+                  <h2>Cơ cấu chi tiêu</h2>
+                  <p class="muted">Biểu đồ tròn theo danh mục chi trong tháng hiện tại.</p>
+                </div>
+              </div>
+              <div class="donut-wrap">
+                <div class="mock-donut"></div>
+                <div class="legend-list">
+                  <div class="legend-item"><span>Ăn uống</span><strong>1.338.000 đ</strong></div>
+                  <div class="legend-item"><span>Hóa đơn</span><strong>3.650.000 đ</strong></div>
+                  <div class="legend-item"><span>Di chuyển</span><strong>300.000 đ</strong></div>
+                  <div class="legend-item"><span>Giải trí</span><strong>420.000 đ</strong></div>
+                </div>
+              </div>
+            </article>
+          </div>
+
+          <div class="dashboard-grid">
+            <article class="panel">
+              <h2>Tiến độ ngân sách</h2>
+              <div class="stack">
+                <div>
+                  <div class="inline-actions" style="justify-content:space-between;"><strong>Ăn uống</strong><span class="tag tag-warning">89%</span></div>
+                  <div class="mock-progress"><span style="width:89%; background:#f59e0b;"></span></div>
+                </div>
+                <div>
+                  <div class="inline-actions" style="justify-content:space-between;"><strong>Hóa đơn</strong><span class="tag tag-safe">76%</span></div>
+                  <div class="mock-progress"><span style="width:76%; background:#16a34a;"></span></div>
+                </div>
+                <div>
+                  <div class="inline-actions" style="justify-content:space-between;"><strong>Giải trí</strong><span class="tag tag-danger">120%</span></div>
+                  <div class="mock-progress"><span style="width:100%; background:#dc2626;"></span></div>
+                </div>
+              </div>
+            </article>
+            <article class="panel">
+              <h2>Insights và dự báo</h2>
+              <div class="mock-alert">
+                <ul class="feature-list">
+                  <li>Danh mục Giải trí đã vượt ngưỡng 100% budget.</li>
+                  <li>Nếu tốc độ chi hiện tại giữ nguyên, cuối tháng còn khoảng 10.2 triệu đồng.</li>
+                  <li>Ví tiền mặt có xu hướng giảm nhanh hơn ví ngân hàng.</li>
+                </ul>
+              </div>
+            </article>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+</body>
+</html>

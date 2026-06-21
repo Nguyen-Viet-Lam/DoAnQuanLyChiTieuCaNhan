@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard | SmartSpend AI</title>
+  <title>Tổng quan tài chính | SmartSpend AI</title>
   <link rel="stylesheet" href="/css/style.css">
   <script src="/js/auth.js" defer></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js" defer></script>
@@ -11,7 +11,7 @@
   <script src="/js/app-shell.js" defer></script>
   <script src="/js/finance-pages.js" defer></script>
 </head>
-<body data-layout="app" data-page="dashboard" data-page-title="Dashboard tài chính">
+<body data-layout="app" data-page="dashboard" data-page-title="Tổng quan tài chính">
   <div class="page-shell">
     <aside class="app-sidebar" id="appSidebar"></aside>
     <div class="app-frame">
@@ -59,7 +59,7 @@
               </div>
               <div class="donut-wrap">
                 <div class="donut-canvas-wrap" id="expenseDonutShell">
-                  <canvas id="expenseDonut" aria-label="Expense breakdown pie chart"></canvas>
+                  <canvas id="expenseDonut" aria-label="Biểu đồ cơ cấu chi tiêu"></canvas>
                 </div>
                 <div class="legend-list" id="expenseLegend"></div>
               </div>
@@ -87,14 +87,55 @@
                   <h2>Forecast</h2>
                   <div id="forecastList"></div>
                 </div>
+                <div>
+                  <h2>Forecast AI</h2>
+                  <div id="forecastSummaryPanel"></div>
+                </div>
               </div>
             </article>
           </div>
+
+          <article class="panel">
+            <div class="panel-header">
+              <div>
+                <h2>AI Nhắc Nhở</h2>
+                <p class="muted">Hiển thị theo hàng ngang để xem nhanh bất thường, cảnh báo và gợi ý cắt giảm.</p>
+              </div>
+            </div>
+            <div class="ai-reminder-grid">
+              <section class="ai-reminder-box anomaly">
+                <div class="panel-header" style="margin-bottom:10px;">
+                  <div>
+                    <h3>Bất thường</h3>
+                    <p class="muted">Các biến động chi tiêu lệch khỏi mức quen thuộc.</p>
+                  </div>
+                </div>
+                <div id="aiAnomalyList"></div>
+              </section>
+              <section class="ai-reminder-box warning">
+                <div class="panel-header" style="margin-bottom:10px;">
+                  <div>
+                    <h3>Cảnh báo</h3>
+                    <p class="muted">Các nhịp chi tiêu cần theo dõi sát trong tháng.</p>
+                  </div>
+                </div>
+                <div id="aiWarningList"></div>
+              </section>
+              <section class="ai-reminder-box recommendation">
+                <div class="panel-header" style="margin-bottom:10px;">
+                  <div>
+                    <h3>Gợi ý cắt giảm</h3>
+                    <p class="muted">Nhóm chi nên siết lại để giữ forecast ổn định.</p>
+                  </div>
+                </div>
+                <div id="aiRecommendationList"></div>
+              </section>
+            </div>
+          </article>
         </section>
       </main>
     </div>
   </div>
   <div class="app-backdrop" id="appBackdrop"></div>
-  <a class="btn btn-primary fab" href="/home/transactions.html#quick-add">+ Thêm giao dịch</a>
 </body>
 </html>

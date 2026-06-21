@@ -49,12 +49,12 @@ namespace SmartSpendAI.Services.Auth
 
             if (string.IsNullOrWhiteSpace(identifier))
             {
-                validationErrors[nameof(LoginRequest.EmailOrUsername)] = ["Email hoac ten dang nhap khong duoc de trong."];
+                validationErrors[nameof(LoginRequest.EmailOrUsername)] = ["Email hoặc tên đăng nhập không được để trống."];
             }
 
             if (string.IsNullOrWhiteSpace(request.Password))
             {
-                validationErrors[nameof(LoginRequest.Password)] = ["Mat khau khong duoc de trong."];
+                validationErrors[nameof(LoginRequest.Password)] = ["Mật khẩu không được để trống."];
             }
 
             if (validationErrors.Count > 0)
@@ -79,7 +79,7 @@ namespace SmartSpendAI.Services.Auth
                 {
                     Success = false,
                     StatusCode = 401,
-                    Message = "Email/ten dang nhap hoac mat khau khong dung."
+                    Message = "Email/tên đăng nhập hoặc mật khẩu không đúng."
                 };
             }
 
@@ -89,7 +89,7 @@ namespace SmartSpendAI.Services.Auth
                 {
                     Success = false,
                     StatusCode = 403,
-                    Message = "Tai khoan da bi khoa."
+                    Message = "Tài khoản đã bị khóa."
                 };
             }
 
@@ -99,7 +99,7 @@ namespace SmartSpendAI.Services.Auth
                 {
                     Success = false,
                     StatusCode = 403,
-                    Message = "Email chua duoc xac thuc. Vui long nhap OTP truoc khi dang nhap."
+                    Message = "Email chưa được xác thực. Vui lòng nhập OTP trước khi đăng nhập."
                 };
             }
 
@@ -155,33 +155,33 @@ namespace SmartSpendAI.Services.Auth
 
             if (string.IsNullOrWhiteSpace(username))
             {
-                validationErrors[nameof(RegisterRequest.Username)] = ["Username khong duoc de trong."];
+                validationErrors[nameof(RegisterRequest.Username)] = ["Username không được để trống."];
             }
 
             if (string.IsNullOrWhiteSpace(fullName))
             {
-                validationErrors[nameof(RegisterRequest.FullName)] = ["Ho ten khong duoc de trong."];
+                validationErrors[nameof(RegisterRequest.FullName)] = ["Họ tên không được để trống."];
             }
 
             if (!request.AcceptTerms)
             {
-                validationErrors[nameof(RegisterRequest.AcceptTerms)] = ["Ban can dong y voi dieu khoan su dung."];
+                validationErrors[nameof(RegisterRequest.AcceptTerms)] = ["Bạn cần đồng ý với điều khoản sử dụng."];
             }
 
             if (!HasStrongPassword(request.Password))
             {
                 validationErrors[nameof(RegisterRequest.Password)] =
-                    ["Mat khau can co it nhat 8 ky tu, gom chu hoa, chu thuong va chu so."];
+                    ["Mật khẩu cần có ít nhất 8 ký tự, gồm chữ hoa, chữ thường và chữ số."];
             }
 
             if (await _dbContext.Users.AnyAsync(x => x.Username == username, cancellationToken))
             {
-                validationErrors[nameof(RegisterRequest.Username)] = ["Ten dang nhap da ton tai."];
+                validationErrors[nameof(RegisterRequest.Username)] = ["Tên đăng nhập đã tồn tại."];
             }
 
             if (await _dbContext.Users.AnyAsync(x => x.Email == email, cancellationToken))
             {
-                validationErrors[nameof(RegisterRequest.Email)] = ["Email da duoc su dung."];
+                validationErrors[nameof(RegisterRequest.Email)] = ["Email đã được sử dụng."];
             }
 
             if (validationErrors.Count > 0)
@@ -217,7 +217,7 @@ namespace SmartSpendAI.Services.Auth
                 {
                     Success = false,
                     IsConflict = true,
-                    Message = "Ten dang nhap hoac email da ton tai."
+                    Message = "Tên đăng nhập hoặc email đã tồn tại."
                 };
             }
 
@@ -237,8 +237,8 @@ namespace SmartSpendAI.Services.Auth
                     OtpDispatched = otpDispatch.Success,
                     OtpExpiresAt = otpDispatch.ExpiresAt,
                     Message = otpDispatch.Success
-                        ? "Dang ky thanh cong. Vui long kiem tra email de nhap OTP xac thuc."
-                        : "Dang ky thanh cong nhung chua gui duoc OTP. Vui long gui lai OTP."
+                        ? "Đăng ký thành công. Vui lòng kiểm tra email để nhập OTP xác thực."
+                        : "Đăng ký thành công nhưng chưa gửi được OTP. Vui lòng gửi lại OTP."
                 }
             };
         }
@@ -265,7 +265,7 @@ namespace SmartSpendAI.Services.Auth
                 return new OtpDispatchResult
                 {
                     Success = true,
-                    Message = "Neu email ton tai, he thong da gui ma OTP dat lai mat khau."
+                    Message = "Nếu email tồn tại, hệ thống đã gửi mã OTP đặt lại mật khẩu."
                 };
             }
 
@@ -274,7 +274,7 @@ namespace SmartSpendAI.Services.Auth
             {
                 Success = dispatch.Success,
                 Message = dispatch.Success
-                    ? "He thong da gui ma OTP dat lai mat khau."
+                    ? "Hệ thống đã gửi mã OTP đặt lại mật khẩu."
                     : dispatch.Message,
                 ExpiresAt = dispatch.ExpiresAt
             };
@@ -286,7 +286,7 @@ namespace SmartSpendAI.Services.Auth
             if (!HasStrongPassword(request.NewPassword))
             {
                 validationErrors[nameof(ResetPasswordRequest.NewPassword)] =
-                    ["Mat khau can co it nhat 8 ky tu, gom chu hoa, chu thuong va chu so."];
+                    ["Mật khẩu cần có ít nhất 8 ký tự, gồm chữ hoa, chữ thường và chữ số."];
             }
 
             if (validationErrors.Count > 0)
@@ -305,7 +305,7 @@ namespace SmartSpendAI.Services.Auth
                 return new SimpleServiceResult
                 {
                     Success = false,
-                    Message = "Khong tim thay tai khoan can dat lai mat khau."
+                    Message = "Không tìm thấy tài khoản cần đặt lại mật khẩu."
                 };
             }
 
@@ -326,7 +326,7 @@ namespace SmartSpendAI.Services.Auth
             return new SimpleServiceResult
             {
                 Success = true,
-                Message = "Dat lai mat khau thanh cong."
+                Message = "Đặt lại mật khẩu thành công."
             };
         }
 
@@ -382,9 +382,9 @@ namespace SmartSpendAI.Services.Auth
             try
             {
                 var httpContext = _httpContextAccessor?.HttpContext;
-                var requestIp = httpContext?.Connection.RemoteIpAddress?.ToString() ?? "unknown-ip";
+                var requestIp = httpContext?.Connection.RemoteIpAddress?.ToString() ?? "khong-ro-ip";
                 var userAgent = httpContext?.Request.Headers.UserAgent.ToString();
-                var sanitizedUserAgent = string.IsNullOrWhiteSpace(userAgent) ? "unknown-agent" : userAgent.Trim();
+                var sanitizedUserAgent = string.IsNullOrWhiteSpace(userAgent) ? "khong-ro-thiet-bi" : userAgent.Trim();
                 var deviceFingerprint = BuildDeviceFingerprint(requestIp, sanitizedUserAgent);
 
                 var previousLogin = await _dbContext.AuditLogs
@@ -406,48 +406,75 @@ namespace SmartSpendAI.Services.Auth
                     CreatedAt = DateTime.UtcNow
                 });
 
+                await _dbContext.SaveChangesAsync(cancellationToken);
+
                 if (isNewDevice && _emailSender is not null)
                 {
-                    var issuedAt = DateTime.UtcNow;
-                    var subject = "Canh bao bao mat: Phat hien dang nhap thiet bi la";
-                    var textBody =
-                        $"He thong phat hien dang nhap moi vao tai khoan {user.Email}.\n" +
-                        $"Thoi gian (UTC): {issuedAt:yyyy-MM-dd HH:mm:ss}\n" +
-                        $"IP: {requestIp}\n" +
-                        $"User-Agent: {sanitizedUserAgent}\n\n" +
-                        "Neu day khong phai ban, vui long doi mat khau ngay lap tuc.";
+                    var alertSent = await TrySendNewDeviceAlertAsync(
+                        user,
+                        requestIp,
+                        sanitizedUserAgent,
+                        cancellationToken);
 
-                    var htmlBody =
-                        "<p>He thong phat hien <strong>dang nhap moi</strong> vao tai khoan cua ban.</p>" +
-                        $"<p><strong>Thoi gian (UTC):</strong> {issuedAt:yyyy-MM-dd HH:mm:ss}<br/>" +
-                        $"<strong>IP:</strong> {requestIp}<br/>" +
-                        $"<strong>User-Agent:</strong> {sanitizedUserAgent}</p>" +
-                        "<p>Neu day khong phai ban, vui long doi mat khau ngay lap tuc.</p>";
-
-                    await _emailSender.SendAsync(user.Email, subject, htmlBody, textBody, cancellationToken);
-
-                    _dbContext.AuditLogs.Add(new AuditLog
+                    if (alertSent)
                     {
-                        ActorUserId = user.UserId,
-                        Action = "UserLoginNewDeviceAlertSent",
-                        TargetType = "User",
-                        TargetId = user.UserId.ToString(),
-                        Metadata = deviceFingerprint,
-                        CreatedAt = DateTime.UtcNow
-                    });
-                }
+                        _dbContext.AuditLogs.Add(new AuditLog
+                        {
+                            ActorUserId = user.UserId,
+                            Action = "UserLoginNewDeviceAlertSent",
+                            TargetType = "User",
+                            TargetId = user.UserId.ToString(),
+                            Metadata = deviceFingerprint,
+                            CreatedAt = DateTime.UtcNow
+                        });
 
-                await _dbContext.SaveChangesAsync(cancellationToken);
+                        await _dbContext.SaveChangesAsync(cancellationToken);
+                    }
+                }
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Could not persist login audit or send suspicious-device alert for UserId={UserId}.", user.UserId);
+                _logger.LogWarning(ex, "Không thể lưu audit đăng nhập hoặc gửi cảnh báo thiết bị lạ cho UserId={UserId}.", user.UserId);
             }
         }
 
         private static string BuildDeviceFingerprint(string requestIp, string userAgent)
         {
             return $"ip={requestIp};ua={userAgent}";
+        }
+
+        private async Task<bool> TrySendNewDeviceAlertAsync(
+            User user,
+            string requestIp,
+            string sanitizedUserAgent,
+            CancellationToken cancellationToken)
+        {
+            try
+            {
+                var issuedAt = DateTime.UtcNow;
+                var subject = "Cảnh báo bảo mật: Phát hiện đăng nhập thiết bị lạ";
+                var textBody =
+                    $"Hệ thống phát hiện đăng nhập mới vào tài khoản {user.Email}.\n" +
+                    $"Thời gian (UTC): {issuedAt:yyyy-MM-dd HH:mm:ss}\n" +
+                    $"IP: {requestIp}\n" +
+                    $"User-Agent: {sanitizedUserAgent}\n\n" +
+                    "Nếu đây không phải bạn, vui lòng đổi mật khẩu ngay lập tức.";
+
+                var htmlBody =
+                    "<p>Hệ thống phát hiện <strong>đăng nhập mới</strong> vào tài khoản của bạn.</p>" +
+                    $"<p><strong>Thời gian (UTC):</strong> {issuedAt:yyyy-MM-dd HH:mm:ss}<br/>" +
+                    $"<strong>IP:</strong> {requestIp}<br/>" +
+                    $"<strong>User-Agent:</strong> {sanitizedUserAgent}</p>" +
+                    "<p>Nếu đây không phải bạn, vui lòng đổi mật khẩu ngay lập tức.</p>";
+
+                await _emailSender!.SendAsync(user.Email, subject, htmlBody, textBody, cancellationToken);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Không thể gửi cảnh báo thiết bị lạ cho UserId={UserId}.", user.UserId);
+                return false;
+            }
         }
     }
 }

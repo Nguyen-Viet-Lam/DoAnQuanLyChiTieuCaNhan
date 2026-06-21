@@ -47,7 +47,13 @@
 
   function statusBadge(status) {
     const tone = budgetTone(status);
-    return `<span class="status-pill status-${tone}">${window.SmartSpendApp.escapeHtml(status || "Safe")}</span>`;
+    const labelMap = {
+      safe: "An toàn",
+      warning: "Cảnh báo",
+      danger: "Vượt mức",
+      info: "Thông tin",
+    };
+    return `<span class="status-pill status-${tone}">${window.SmartSpendApp.escapeHtml(labelMap[tone] || status || "An toàn")}</span>`;
   }
 
   function renderTrendChart(points) {
@@ -67,11 +73,11 @@
     }
 
     if (!window.Chart) {
-      shell.innerHTML = '<div class="empty-state">Khong the tai Chart.js. Vui long thu lai.</div>';
+      shell.innerHTML = '<div class="empty-state">Không thể tải Chart.js. Vui lòng thử lại.</div>';
       return;
     }
 
-    shell.innerHTML = '<canvas id=\"trendChart\" aria-label=\"Monthly income and expense chart\"></canvas>';
+    shell.innerHTML = '<canvas id=\"trendChart\" aria-label=\"Biểu đồ thu chi theo tháng\"></canvas>';
     const canvas = document.getElementById("trendChart");
     if (!canvas) {
       return;
@@ -135,14 +141,14 @@
   function normalizeRoleLabel(role) {
     const value = String(role || "").toLowerCase();
     if (value === "systemadmin" || value === "admin") {
-      return "Admin";
+      return "Quản trị viên";
     }
 
     if (value === "standarduser" || value === "user") {
-      return "User";
+      return "Người dùng";
     }
 
-    return "Guest";
+    return "Khách";
   }
 
   function renderExpenseDonut(items) {
@@ -164,11 +170,11 @@
     }
 
     if (!window.Chart) {
-      shell.innerHTML = '<div class="empty-state">Khong the tai Chart.js. Vui long thu lai.</div>';
+      shell.innerHTML = '<div class="empty-state">Không thể tải Chart.js. Vui lòng thử lại.</div>';
       return;
     }
 
-    shell.innerHTML = '<canvas id=\"expenseDonut\" aria-label=\"Expense breakdown pie chart\"></canvas>';
+    shell.innerHTML = '<canvas id=\"expenseDonut\" aria-label=\"Biểu đồ cơ cấu chi tiêu\"></canvas>';
     const canvas = document.getElementById("expenseDonut");
     if (!canvas) {
       return;
@@ -237,7 +243,7 @@
             <div class="timeline-dot"></div>
             <div class="timeline-content">
               <div class="timeline-top">
-                <strong>${window.SmartSpendApp.escapeHtml(item.note || "Khong co ghi chu")}</strong>
+                <strong>${window.SmartSpendApp.escapeHtml(item.note || "Không có ghi chú")}</strong>
                 <span class="status-pill status-${tone === "income" ? "safe" : "danger"}">${item.type === "Income" ? "Thu" : "Chi"}</span>
               </div>
               <div class="muted">${window.SmartSpendApp.formatDate(item.transactionDate)} | ${window.SmartSpendApp.escapeHtml(item.walletName)} | ${window.SmartSpendApp.escapeHtml(item.categoryName)}</div>
@@ -289,9 +295,200 @@
       return;
     }
 
+    const toText = (item) => {
+      if (typeof item === "string") {
+        return item;
+      }
+
+      if (item && typeof item === "object") {
+        return item.message || item.Message || item.type || item.Type || "";
+      }
+
+      return String(item || "");
+    };
+
     container.innerHTML = `<ul class="insight-list">${items
-      .map((item) => `<li>${window.SmartSpendApp.escapeHtml(item)}</li>`)
+      .map((item) => `<li>${window.SmartSpendApp.escapeHtml(toText(item))}</li>`)
       .join("")}</ul>`;
+  }
+
+  function renderForecastSummary(summary) {
+    const container = document.getElementById("forecastSummaryPanel");
+    if (!container) {
+      return;
+    }
+
+    if (!summary) {
+      container.innerHTML = '<div class="empty-state">Chưa có dữ liệu dự báo AI.</div>';
+      return;
+    }
+
+    const fixedItems = Array.isArray(summary.fixedCostItems) ? summary.fixedCostItems : [];
+    const explanations = Array.isArray(summary.explanations) ? summary.explanations : [];
+
+    const fixedItemsHtml =
+      fixedItems.length === 0
+        ? '<div class="empty-state">AI chưa nhận diện khoản chi cố định nào trong 2-3 tháng gần đây.</div>'
+        : `<div class="legend-list">${fixedItems
+            .map(
+              (item) => `
+                <div class="legend-item">
+                  <div>
+                    <strong>${window.SmartSpendApp.escapeHtml(item.label || "Khoản chi cố định")}</strong>
+                    <div class="muted">${
+                      item.alreadyCharged
+                        ? "Đã ghi nhận trong tháng này"
+                        : `Dự kiến quanh ngày ${item.expectedDayOfMonth || "--"}`
+                    }</div>
+                  </div>
+                  <strong>${window.SmartSpendApp.formatCurrency(item.amount || 0)}</strong>
+                </div>`
+            )
+            .join("")}</div>`;
+
+    container.innerHTML = `
+      <div class="metrics-grid" style="margin-bottom:12px;">
+        <article class="metric-card">
+          <div class="metric-label">Cố định đã chi</div>
+          <div class="metric-value">${window.SmartSpendApp.formatCurrency(summary.fixedSpentThisMonth || 0)}</div>
+        </article>
+        <article class="metric-card">
+          <div class="metric-label">Cố định còn lại</div>
+          <div class="metric-value">${window.SmartSpendApp.formatCurrency(summary.fixedRemainingThisMonth || 0)}</div>
+        </article>
+        <article class="metric-card">
+          <div class="metric-label">Linh hoạt còn lại</div>
+          <div class="metric-value">${window.SmartSpendApp.formatCurrency(summary.flexibleProjectedRemaining || 0)}</div>
+        </article>
+        <article class="metric-card">
+          <div class="metric-label">Số dư cuối tháng dự kiến</div>
+          <div class="metric-value">${window.SmartSpendApp.formatCurrency(summary.projectedEndBalance || 0)}</div>
+        </article>
+      </div>
+      <div class="stack">
+        <div>
+          <h3 style="margin-bottom:8px;">Vì sao AI dự đoán như vậy?</h3>
+          ${explanations.length
+            ? `<ul class="insight-list">${explanations
+                .map((item) => `<li>${window.SmartSpendApp.escapeHtml(item)}</li>`)
+                .join("")}</ul>`
+            : '<div class="empty-state">Chưa có giải thích AI.</div>'}
+        </div>
+        <div>
+          <h3 style="margin-bottom:8px;">Khoản chi cố định nhận diện được</h3>
+          ${fixedItemsHtml}
+        </div>
+      </div>`;
+  }
+
+  function renderAiReminders(items) {
+    const anomalyContainer = document.getElementById("aiAnomalyList");
+    const warningContainer = document.getElementById("aiWarningList");
+    const recommendationContainer = document.getElementById("aiRecommendationList");
+    if (!anomalyContainer || !warningContainer || !recommendationContainer) {
+      return;
+    }
+
+    const safeItems = Array.isArray(items) ? items : [];
+
+    const anomalyItems = safeItems.filter(
+      (item) => item.type === "Anomaly" || item.algorithm === "StatisticalAnomalyDetection"
+    );
+    const recommendationItems = safeItems.filter(
+      (item) => item.type === "Recommendation" || item.algorithm === "TopKRecommendation"
+    );
+    const warningItems = safeItems.filter(
+      (item) =>
+        !anomalyItems.includes(item) &&
+        !recommendationItems.includes(item) &&
+        (item.level === "Danger" ||
+          item.level === "Warning" ||
+          item.type === "Budget" ||
+          item.type === "Forecast" ||
+          item.type === "Spike" ||
+          item.type === "Trend")
+    );
+
+    function compactText(value, maxLength) {
+      const text = String(value || "").trim();
+      if (!text) {
+        return "";
+      }
+
+      if (text.length <= maxLength) {
+        return text;
+      }
+
+      return `${text.slice(0, maxLength).trim()}...`;
+    }
+
+    function algorithmLabel(value) {
+      const map = {
+        StatisticalAnomalyDetection: "Anomaly",
+        TopKRecommendation: "Top-K",
+        WeightedMovingAverage: "WMA",
+        BudgetThreshold: "Budget",
+        MonthlyTrend: "Trend",
+        WeeklyTrend: "Week",
+        BudgetPace: "Pace",
+        OutlierSpike: "Spike",
+      };
+
+      return map[value] || compactText(value, 16);
+    }
+
+    function renderReminderGroup(container, groupItems, emptyText) {
+      if (!groupItems.length) {
+        container.innerHTML = `<div class="empty-state">${window.SmartSpendApp.escapeHtml(emptyText)}</div>`;
+        return;
+      }
+
+      const prioritizedItems = groupItems.slice(0, 2);
+      container.innerHTML = `<div class="ai-reminder-stack">${prioritizedItems
+        .map((item) => {
+        const tone = budgetTone(item.level || "info");
+        const explanation = item.explanation
+          ? `<div class="ai-reminder-note">${window.SmartSpendApp.escapeHtml(compactText(item.explanation, 88))}</div>`
+          : "";
+        const action = item.suggestedAction
+          ? `<div class="ai-reminder-action">${window.SmartSpendApp.escapeHtml(compactText(item.suggestedAction, 72))}</div>`
+          : "";
+        const metaParts = [
+          item.algorithm ? algorithmLabel(item.algorithm) : "",
+          item.categoryName || "",
+        ].filter(Boolean);
+
+        return `
+          <article class="ai-reminder-card">
+            <div class="ai-reminder-top">
+              <div class="ai-reminder-copy">
+                <strong class="ai-reminder-title">${window.SmartSpendApp.escapeHtml(compactText(item.message || "Nhắc nhở AI", 68))}</strong>
+                ${metaParts.length ? `<div class="ai-reminder-meta">${window.SmartSpendApp.escapeHtml(metaParts.join(" • "))}</div>` : ""}
+              </div>
+              <span class="status-pill status-${tone}">${window.SmartSpendApp.escapeHtml(({ Danger: "Vượt mức", Warning: "Cảnh báo", Info: "Thông tin" }[item.level] || item.level || "Thông tin"))}</span>
+            </div>
+            ${explanation}
+            ${action}
+          </article>`;
+        })
+        .join("")}</div>`;
+    }
+
+    renderReminderGroup(
+      anomalyContainer,
+      anomalyItems,
+      "Chưa có bất thường nào đang được AI phát hiện."
+    );
+    renderReminderGroup(
+      warningContainer,
+      warningItems,
+      "Chưa có cảnh báo chi tiêu nào cần ưu tiên lúc này."
+    );
+    renderReminderGroup(
+      recommendationContainer,
+      recommendationItems,
+      "Chưa có gợi ý cắt giảm nào đủ mạnh để hiển thị."
+    );
   }
 
   async function initDashboardPage() {
@@ -320,6 +517,8 @@
       renderBudgetProgress(data.budgetProgress || [], "dashboardBudgets");
       renderBulletList("insightsList", data.insights || [], "Chưa có insight nào.");
       renderBulletList("forecastList", data.forecasts || [], "Chưa có dự báo nào.");
+      renderForecastSummary(data.forecastSummary || null);
+      renderAiReminders(data.aiReminders || []);
     } catch (error) {
       message("dashboardMessage", error.message, "error");
     }
@@ -508,10 +707,49 @@
     const transactionForm = document.getElementById("transactionForm");
     const filterForm = document.getElementById("transactionFilterForm");
     const tableBody = document.getElementById("transactionTableBody");
+    const smartInputButton = document.getElementById("smartInputSuggestButton");
+    const smartInputSuggestion = document.getElementById("smartInputSuggestion");
     let wallets = [];
     let categories = [];
     let transactions = [];
     let editingTransactionId = null;
+
+    function renderSmartInputSuggestion(result) {
+      if (!smartInputSuggestion) {
+        return;
+      }
+
+      if (!result) {
+        smartInputSuggestion.innerHTML = "Chưa có gợi ý AI.";
+        return;
+      }
+
+      const lines = [];
+      if (result.suggestedCategoryName) {
+        lines.push(`Danh mục: ${result.suggestedCategoryName}`);
+      }
+      if (result.suggestedType) {
+        lines.push(`Loại: ${result.suggestedType === "Income" ? "Thu" : "Chi"}`);
+      }
+      if (result.suggestedWalletName) {
+        lines.push(`Ví: ${result.suggestedWalletName}`);
+      }
+      if (result.amount) {
+        lines.push(`Số tiền AI nhận ra: ${window.SmartSpendApp.formatCurrency(result.amount)}`);
+      }
+      lines.push(`Độ tin cậy: ${Math.round(Number(result.aiConfidence || 0) * 100)}%`);
+
+      const reasons = Array.isArray(result.reasoning) ? result.reasoning : [];
+      smartInputSuggestion.innerHTML = `
+        <div><strong>${window.SmartSpendApp.escapeHtml(lines.join(" | "))}</strong></div>
+        ${
+          reasons.length
+            ? `<ul class="insight-list">${reasons
+                .map((item) => `<li>${window.SmartSpendApp.escapeHtml(item)}</li>`)
+                .join("")}</ul>`
+            : ""
+        }`;
+    }
 
     function setSelectOptions(selectId, items, placeholder) {
       const select = document.getElementById(selectId);
@@ -545,10 +783,54 @@
       transactionForm.transactionDate.value = new Date().toISOString().slice(0, 10);
       transactionForm.querySelector("button[type='submit']").textContent = "Lưu giao dịch";
       document.getElementById("cancelTransactionEdit").hidden = true;
+      renderSmartInputSuggestion(null);
       if (wallets.length > 0) {
         const defaultWallet = wallets.find((item) => item.isDefault) || wallets[0];
         transactionForm.walletId.value = String(defaultWallet.walletId);
       }
+    }
+
+    async function applySmartInputSuggestion() {
+      if (!transactionForm) {
+        return;
+      }
+
+      const note = String(transactionForm.note.value || "").trim();
+      const amount = String(transactionForm.amount.value || "").trim();
+      const combinedInput = [note, amount].filter(Boolean).join(" ");
+
+      if (!combinedInput) {
+        renderSmartInputSuggestion({
+          reasoning: ["Hãy nhập ghi chú hoặc số tiền để AI có thể gợi ý."],
+          aiConfidence: 0,
+        });
+        return;
+      }
+
+      const result = await window.SmartSpendApp.api("/api/ai/smart-input", {
+        method: "POST",
+        body: {
+          input: combinedInput,
+        },
+      });
+
+      if (result.suggestedCategoryId) {
+        transactionForm.categoryId.value = String(result.suggestedCategoryId);
+      }
+      if (result.suggestedWalletId) {
+        transactionForm.walletId.value = String(result.suggestedWalletId);
+      }
+      if (result.suggestedType) {
+        transactionForm.type.value = result.suggestedType;
+      }
+      if ((!transactionForm.amount.value || Number(transactionForm.amount.value) <= 0) && Number(result.amount || 0) > 0) {
+        transactionForm.amount.value = String(Number(result.amount));
+      }
+      if (!transactionForm.transactionDate.value && result.transactionDate) {
+        transactionForm.transactionDate.value = window.SmartSpendApp.formatDateInput(result.transactionDate);
+      }
+
+      renderSmartInputSuggestion(result);
     }
 
     function buildQueryFromFilters() {
@@ -690,7 +972,7 @@
         });
 
         if (!response.ok) {
-          let errorMessage = "Xuat Excel that bai.";
+          let errorMessage = "Xuất Excel thất bại.";
           const contentType = response.headers.get("content-type") || "";
           if (contentType.toLowerCase().includes("application/json")) {
             const errorBody = await response.json().catch(() => null);
@@ -719,6 +1001,13 @@
     });
 
     document.getElementById("cancelTransactionEdit")?.addEventListener("click", resetTransactionForm);
+    smartInputButton?.addEventListener("click", async () => {
+      try {
+        await applySmartInputSuggestion();
+      } catch (error) {
+        message("transactionMessage", error.message, "error");
+      }
+    });
 
     await loadLookups();
     resetTransactionForm();
@@ -971,7 +1260,7 @@
     const avatarImage = document.getElementById("profileAvatarImage");
 
     function getInitials(fullName, username) {
-      const source = String(fullName || username || "User").trim();
+      const source = String(fullName || username || "Người dùng").trim();
       const parts = source.split(/\s+/).filter(Boolean);
       if (parts.length === 0) {
         return "U";
@@ -1088,7 +1377,7 @@
       }
 
       if (users.length === 0) {
-        body.innerHTML = '<tr><td colspan="7"><div class="empty-state">Chưa có user nào.</div></td></tr>';
+        body.innerHTML = '<tr><td colspan="7"><div class="empty-state">Chưa có tài khoản nào.</div></td></tr>';
         return;
       }
 
@@ -1101,7 +1390,7 @@
               <td>${window.SmartSpendApp.escapeHtml(user.username)}</td>
               <td>${window.SmartSpendApp.escapeHtml(user.email)}</td>
               <td>${window.SmartSpendApp.escapeHtml(normalizeRoleLabel(user.role))}</td>
-              <td>${user.isLocked ? '<span class="status-pill status-danger">Locked</span>' : '<span class="status-pill status-safe">Active</span>'}</td>
+              <td>${user.isLocked ? '<span class="status-pill status-danger">Đã khóa</span>' : '<span class="status-pill status-safe">Đang hoạt động</span>'}</td>
               <td>
                 <button class="btn ${user.isLocked ? "btn-success" : "btn-warning"}" data-user-action="${user.isLocked ? "unlock" : "lock"}" data-user-id="${user.userId}">
                   ${user.isLocked ? "Mở khóa" : "Khóa"}
@@ -1117,7 +1406,7 @@
             await window.SmartSpendApp.api(`/api/admin/users/${button.dataset.userId}/${button.dataset.userAction}`, {
               method: "POST",
             });
-            window.SmartSpendApp.showToast("Cập nhật trạng thái user thành công.", "success");
+            window.SmartSpendApp.showToast("Cập nhật trạng thái tài khoản thành công.", "success");
             await loadUsers();
           } catch (error) {
             message("adminUsersMessage", error.message, "error");
@@ -1181,10 +1470,10 @@
             <tr>
               <td>${category.categoryId}</td>
               <td>${window.SmartSpendApp.escapeHtml(category.name)}</td>
-              <td>${window.SmartSpendApp.escapeHtml(category.type)}</td>
+              <td>${window.SmartSpendApp.escapeHtml(category.type === "Income" ? "Thu nhập" : "Chi tiêu")}</td>
               <td>${window.SmartSpendApp.escapeHtml(category.icon || "--")}</td>
               <td><span class="legend-swatch" style="background:${window.SmartSpendApp.escapeHtml(category.color || "#48d1a0")}"></span> ${window.SmartSpendApp.escapeHtml(category.color || "--")}</td>
-              <td>${category.isSystem ? '<span class="status-pill status-safe">System</span>' : '<span class="status-pill">Custom</span>'}</td>
+              <td>${category.isSystem ? '<span class="status-pill status-safe">Hệ thống</span>' : '<span class="status-pill">Tùy chỉnh</span>'}</td>
               <td>
                 <div class="table-actions">
                   <button class="btn btn-secondary" type="button" data-edit-category="${category.categoryId}">Sửa</button>
@@ -1307,13 +1596,42 @@
     const body = document.getElementById("adminLogsBody");
     const takeInput = document.getElementById("adminLogsTake");
 
+    function localizeAuditAction(action) {
+      const map = {
+        WalletCreated: "Tạo ví",
+        WalletUpdated: "Cập nhật ví",
+        WalletDeleted: "Xóa ví",
+        WalletTransferred: "Chuyển tiền giữa ví",
+        TransactionCreated: "Tạo giao dịch",
+        TransactionUpdated: "Cập nhật giao dịch",
+        TransactionDeleted: "Xóa giao dịch",
+        UserLoginSuccess: "Đăng nhập thành công",
+        UserLoginNewDeviceAlertSent: "Gửi cảnh báo thiết bị mới",
+        WeeklySummarySent: "Gửi tổng kết tuần",
+      };
+
+      return map[action] || action || "--";
+    }
+
+    function localizeTargetType(targetType) {
+      const map = {
+        User: "Người dùng",
+        Wallet: "Ví",
+        Transaction: "Giao dịch",
+        Transfer: "Chuyển khoản",
+        Email: "Email",
+      };
+
+      return map[targetType] || targetType || "--";
+    }
+
     function renderLogs(logs) {
       if (!body) {
         return;
       }
 
       if (!Array.isArray(logs) || logs.length === 0) {
-        body.innerHTML = '<tr><td colspan="7"><div class="empty-state">Chưa có log nào.</div></td></tr>';
+        body.innerHTML = '<tr><td colspan="7"><div class="empty-state">Chưa có bản ghi nhật ký nào.</div></td></tr>';
         return;
       }
 
@@ -1322,9 +1640,9 @@
           (log) => `
             <tr>
               <td>${log.auditLogId}</td>
-              <td>${window.SmartSpendApp.escapeHtml(log.actor || "system")}</td>
-              <td>${window.SmartSpendApp.escapeHtml(log.action || "--")}</td>
-              <td>${window.SmartSpendApp.escapeHtml(log.targetType || "--")}</td>
+              <td>${window.SmartSpendApp.escapeHtml(log.actor || "Hệ thống")}</td>
+              <td>${window.SmartSpendApp.escapeHtml(localizeAuditAction(log.action))}</td>
+              <td>${window.SmartSpendApp.escapeHtml(localizeTargetType(log.targetType))}</td>
               <td>${window.SmartSpendApp.escapeHtml(log.targetId || "--")}</td>
               <td>${window.SmartSpendApp.escapeHtml(log.metadata || "--")}</td>
               <td>${window.SmartSpendApp.formatDateTime(log.createdAt)}</td>

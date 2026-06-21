@@ -22,14 +22,14 @@
   const normalizeRole = (role) => {
     const value = String(role || "").toLowerCase();
     if (value === "systemadmin" || value === "admin") {
-      return "Admin";
+      return "Quản trị viên";
     }
 
     if (value === "standarduser" || value === "user") {
-      return "User";
+      return "Người dùng";
     }
 
-    return "Guest";
+    return "Khách";
   };
 
   const getCurrentUser = () => {
@@ -120,7 +120,7 @@
     const requiredRoles = Array.isArray(opts.roles) ? opts.roles : [];
     const normalizedRequiredRoles = requiredRoles
       .map((item) => normalizeRole(item))
-      .filter((item, index, array) => item !== "Guest" && array.indexOf(item) === index);
+      .filter((item, index, array) => item !== "Khách" && array.indexOf(item) === index);
     const onForbidden =
       typeof opts.onForbidden === "function" ? opts.onForbidden : null;
 
@@ -153,7 +153,7 @@
   const getInitials = (name, email) => {
     const source = String(name || email || "").trim();
     if (!source) {
-      return "US";
+      return "ND";
     }
 
     const parts = source.split(/\s+/).filter(Boolean);
@@ -172,7 +172,7 @@
     const logoutSelector = opts.logoutSelector || "[data-auth-logout]";
 
     document.querySelectorAll(nameSelector).forEach((el) => {
-      el.textContent = me.fullName || me.username || me.email || "User";
+      el.textContent = me.fullName || me.username || me.email || "Người dùng";
     });
 
     document.querySelectorAll(avatarSelector).forEach((el) => {
